@@ -1,4 +1,4 @@
-#include "headers/Client.h"
+#include "Client.h"
 
 Client::Client(char *_hostname, int _port) {
 

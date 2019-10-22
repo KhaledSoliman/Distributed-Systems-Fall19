@@ -1,5 +1,5 @@
-#include "headers/Message.h"
-#include "headers/Server.h"
+#include "Message.h"
+#include "Server.h"
 
 void Server::sendReply(Message *_message) {
 
