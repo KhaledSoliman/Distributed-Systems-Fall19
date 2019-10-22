@@ -1,6 +1,9 @@
 #ifndef DISTRIBUTED_SYSTEMS_FALL19_SERVER_H
 #define DISTRIBUTED_SYSTEMS_FALL19_SERVER_H
 
+#include "UDPServerSocket.h"
+#include "Message.h"
+
 class Server {
 private:
     UDPServerSocket *udpServerSocket;
@@ -16,7 +19,7 @@ public:
 
     void serveRequest();
 
-    ~server();
+    ~Server();
 };
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_SERVER_H

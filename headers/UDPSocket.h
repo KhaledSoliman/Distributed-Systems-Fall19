@@ -1,6 +1,8 @@
 #ifndef DISTRIBUTED_SYSTEMS_FALL19_UDPSOCKET_H
 #define DISTRIBUTED_SYSTEMS_FALL19_UDPSOCKET_H
 
+#include <netinet/in.h>
+
 class UDPSocket {
 protected:
     int sock;

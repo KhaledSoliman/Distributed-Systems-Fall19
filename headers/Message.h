@@ -1,5 +1,8 @@
 #ifndef DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
 #define DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
+
+#include <cstdio>
+
 enum MessageType {
     Request, Reply
 };

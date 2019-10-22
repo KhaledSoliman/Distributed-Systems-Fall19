@@ -3,7 +3,7 @@
 
 #include "UDPSocket.h"
 
-class UDPClientSocket : public UDPSocket {
+class UDPServerSocket : public UDPSocket {
 public:
     UDPServerSocket();
 
