@@ -23,7 +23,7 @@ public:
 
     int getOperation();
 
-    ing getRPCId();
+    int getRPCId();
 
     void *getMessage();
 
