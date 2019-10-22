@@ -1,11 +1,23 @@
 #include "UDPSocket.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <cstdlib>
+#include <cstdio>
+#include <zconf.h>
+
+extern "C" {
+char *inet_ntoa(struct in_addr);
+}
 
 UDPSocket::UDPSocket() {
-
+    this->enabled = false;
+    if ((this->sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("Socket creation failed\n");
+    }
 }
 
 void UDPSocket::setFilterAddress(char *_filterAddress) {
-
 }
 
 char *UDPSocket::getFilterAddress() {
@@ -13,14 +25,43 @@ char *UDPSocket::getFilterAddress() {
 }
 
 bool UDPSocket::initializeServer(char *_myAddr, int _myPort) {
-    return false;
+    this->myAddress = _myAddr;
+    this->myPort = _myPort;
+    this->myAddr.sin_family = AF_INET;
+    this->myAddr.sin_port = htons(_myPort);
+    this->myAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if(bind(this->sock, reinterpret_cast<const sockaddr *>(&myAddr), sizeof(struct sockaddr_in)) != 0){
+        perror("Socket binding failed\n");
+        return false;
+    }
+    return true;
 }
 
 bool UDPSocket::initializeClient(char *_peerAddr, int _peerPort) {
-    return false;
+    struct hostent *host;
+    this->peerAddress = _peerAddr;
+    this->peerPort = _peerPort;
+    this->peerAddr.sin_family = AF_INET;
+    if ((host = gethostbyname(this->peerAddress)) == nullptr) {
+        printf("Unknown host name\n");
+        return false;
+    }
+    this->peerAddr.sin_port = htons(_peerPort);
+    this->peerAddr.sin_addr = *(struct in_addr *) (host->h_addr);
+    if(bind(this->sock, reinterpret_cast<const sockaddr *>(&peerAddr), sizeof(struct sockaddr_in)) != 0){
+        perror("Socket binding failed\n");
+        return false;
+    }
+    return true;
 }
 
 int UDPSocket::writeToSocket(char *buffer, int maxBytes) {
+
+    makeDestSA(&yourSocketAddress,machine, port);
+    if( (n = sendto(s, message1, strlen(message1), 0, &yourSocketAddress,
+                    sizeof(struct sockaddr_in))) < 0) perror("Send 2 failed\n");
+    if( (n = sendto(s, message2, strlen(message2), 0, &yourSocketAddress,
+                    sizeof(struct sockaddr_in))) < 0) perror("Send 2 failed\n");
     return 0;
 }
 
@@ -53,11 +94,11 @@ int UDPSocket::readSocketWithBlock(char *buffer, int maxBytes) {
 }
 
 int UDPSocket::getMyPort() {
-    return 0;
+    return this->myPort;
 }
 
 int UDPSocket::getPeerPort() {
-    return 0;
+    return this->peerPort;
 }
 
 void UDPSocket::enable() {
@@ -85,5 +126,5 @@ int UDPSocket::getSocketHandler() {
 }
 
 UDPSocket::~UDPSocket() {
-
+    close(this->sock);
 }
