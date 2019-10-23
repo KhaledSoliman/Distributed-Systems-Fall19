@@ -23,7 +23,7 @@ int main() {
             while (1) {
                 char *message = static_cast<char *>(malloc(300));
                 std::cout << "Input the message to be sent to the destination server:" << std::endl;
-                std::cin >> message;
+                std::cin.getline(message, 300, '\n');
                 Message msg = Message(0, message, strlen(message), 1);
                 msg.setMessageType(MessageType::Request);
                 c.execute(&msg);
