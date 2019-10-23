@@ -1,24 +1,35 @@
+#include <cstring>
+#include <iostream>
 #include "Message.h"
 #include "Server.h"
 
-void Server::sendReply(Message *_message) {
+Server::Server(char *_listen_hostname, int _listen_port) {
+    this->udpServerSocket = new UDPServerSocket();
+    this->udpServerSocket->initializeServer(_listen_hostname, _listen_port);
+}
 
+void Server::sendReply(Message *_message) {
+    this->udpServerSocket->writeToSocket(_message->getMessage(), _message->getMessageSize());
 }
 
 Message *Server::getRequest() {
-    return nullptr;
+    char *request = static_cast<char *>(malloc(1000));
+    this->udpServerSocket->readSocketWithNoBlock(request, 1000);
+    return new Message(0,request,strlen(request),1);  ;
 }
 
 Message *Server::doOperation() {
     return nullptr;
 }
 
-Server::Server(char *_listen_hostname, int _listen_port) {
-
-}
-
 void Server::serveRequest() {
-
+    Message* msg = getRequest();
+    std::cout << "Server Message Received: " << msg->getMessage() << std::endl;
+    if(strncmp(msg->getMessage(), "q",1) == 0) {
+        std::cout << "Server found exit message...\nTerminating Process" << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    sendReply(msg);
 }
 
 Server::~Server() {

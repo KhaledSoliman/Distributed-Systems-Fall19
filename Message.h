@@ -11,11 +11,11 @@ class Message {
 private:
     MessageType message_type;
     int operation;
-    void *message;
+    char* message;
     size_t message_size;
     int rpc_id;
 public:
-    Message(int operation, void *p_message, size_t p_message_size, int p_rpc_id);
+    Message(int operation, char *p_message, size_t p_message_size, int p_rpc_id);
 
     Message(char *marshalled_base64);
 
@@ -25,7 +25,7 @@ public:
 
     int getRPCId();
 
-    void *getMessage();
+    char *getMessage();
 
     size_t getMessageSize();
 
@@ -33,7 +33,7 @@ public:
 
     void setOperation(int _operation);
 
-    void setMessage(void *message, size_t message_size);
+    void setMessage(char *message, size_t message_size);
 
     void setMessageType(MessageType message_type);
 

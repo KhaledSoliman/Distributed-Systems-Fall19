@@ -1,6 +1,6 @@
 #include "UDPClientSocket.h"
 
-UDPClientSocket::UDPClientSocket() {
+UDPClientSocket::UDPClientSocket() : UDPSocket() {
 
 }
 

@@ -1,6 +1,6 @@
 #include "UDPServerSocket.h"
 
-UDPServerSocket::UDPServerSocket() {
+UDPServerSocket::UDPServerSocket() : UDPSocket() {
 
 }
 
