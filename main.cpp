@@ -17,12 +17,13 @@ int main() {
             std::cin >> serverHostname;
             std::cout << "Enter destination port:" << std::endl;
             std::cin >> serverPort;
+            std::cin.ignore();
             Client c = Client(serverHostname, serverPort);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
             while (1) {
                 char *message = static_cast<char *>(malloc(300));
-                std::cout << "Input the message to be sent to the destination server:" << std::endl;
+                std::cout << "Input the message to be sent to the destination server:\n";
                 std::cin.getline(message, 300, '\n');
                 Message msg = Message(0, message, strlen(message), 1);
                 msg.setMessageType(MessageType::Request);
@@ -38,6 +39,7 @@ int main() {
             std::cout << "Enter desired Port to listen on: " << std::endl;
             std::cin >> listenPort;
             Server s = Server(listenHostname, listenPort);
+            std::cout << "Listening for requests from clients...\n";
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
             while (1) {
