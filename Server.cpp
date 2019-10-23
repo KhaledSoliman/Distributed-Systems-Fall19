@@ -25,11 +25,11 @@ Message *Server::doOperation() {
 void Server::serveRequest() {
     Message* msg = getRequest();
     std::cout << "Server Message Received: " << msg->getMessage() << std::endl;
+    sendReply(msg);
     if(strncmp(msg->getMessage(), "q",1) == 0) {
         std::cout << "Server found exit message...\nTerminating Process" << std::endl;
         exit(EXIT_SUCCESS);
     }
-    sendReply(msg);
 }
 
 Server::~Server() {
