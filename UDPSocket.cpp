@@ -6,6 +6,8 @@
 #include <pthread.h>
 #include <iostream>
 #include <arpa/inet.h>
+#include <sys/poll.h>
+#include <cstring>
 
 UDPSocket::UDPSocket() {
     this->enabled = false;
@@ -92,7 +94,12 @@ int UDPSocket::readFromSocketWithTimeout(char *buffer, int maxBytes, int timeout
 }
 
 int UDPSocket::readFromSocketWithBlock(char *buffer, int maxBytes) {
-    return 0;
+    int n;
+    socklen_t aLength = sizeof(this->peerAddr);
+    peerAddr.sin_family = AF_INET;
+    if((n = recvfrom(this->sock, buffer, maxBytes, 0,(struct sockaddr *)  &this->peerAddr, &aLength))<0)
+        perror("Receive 1") ;
+    return n;
 }
 
 int UDPSocket::readSocketWithNoBlock(char *buffer, int maxBytes) {
@@ -105,7 +112,18 @@ int UDPSocket::readSocketWithNoBlock(char *buffer, int maxBytes) {
 }
 
 int UDPSocket::readSocketWithTimeout(char *buffer, int maxBytes, int timeoutSec, int timeoutMilli) {
-    return 0;
+    int n;
+    socklen_t aLength = sizeof(this->peerAddr);
+    peerAddr.sin_family = AF_INET;
+    struct pollfd pfd = {.fd = this->sock, .events = POLLIN};
+    if((n = poll(&pfd, 1, timeoutMilli)) == 0) {
+        strcpy(buffer, "Server Timed Out!");
+        return n;
+    } else {
+        if((n = recvfrom(this->sock, buffer, maxBytes, 0,(struct sockaddr *)  &this->peerAddr, &aLength))<0)
+            perror("Receive 1") ;
+        return n;
+    }
 }
 
 int UDPSocket::readSocketWithBlock(char *buffer, int maxBytes) {

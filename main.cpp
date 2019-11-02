@@ -24,8 +24,11 @@ int main() {
                 Client c = Client(serverHostname, serverPort);
                 while (1) {
                     char *message = static_cast<char *>(malloc(300));
-                    std::cout << "Input the message to be sent to the destination server:\n";
-                    std::cin.getline(message, 300, '\n');
+                    do {
+                        std::cout << "Input the message to be sent to the destination server:\n";
+                        std::cin.getline(message, 300, '\n');
+                    } while (strncmp(message, "", 1) == 0);
+                    //strcpy(message, "flood");
                     Message msg = Message(0, message, strlen(message), 1);
                     msg.setMessageType(MessageType::Request);
                     c.execute(&msg);

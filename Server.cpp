@@ -14,7 +14,7 @@ void Server::sendReply(Message *_message) {
 
 Message *Server::getRequest() {
     char *request = static_cast<char *>(malloc(1000));
-    this->udpServerSocket->readSocketWithNoBlock(request, 1000);
+    this->udpServerSocket->readFromSocketWithBlock(request, 1000);
     return new Message(0,request,strlen(request),1);  ;
 }
 
