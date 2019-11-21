@@ -1,7 +1,7 @@
 
 #include <cstdlib>
-#include "Message.h"
-#include "base64.h"
+#include "../headers/Message.h"
+#include "../headers/base64.h"
 
 Message::Message(int operation, char *p_message, size_t p_message_size, int p_rpc_id) {
     this->operation = operation;

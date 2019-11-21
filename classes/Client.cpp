@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-#include "Client.h"
+#include "../headers/Client.h"
 
 Client::Client(char *_hostname, int _port) {
     this->udpSocket = new UDPClientSocket();

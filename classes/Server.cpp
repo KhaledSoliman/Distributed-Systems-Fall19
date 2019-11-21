@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
-#include "Message.h"
-#include "Server.h"
+#include "../headers/Message.h"
+#include "../headers/Server.h"
 
 Server::Server(char *_listen_hostname, int _listen_port) {
     this->udpServerSocket = new UDPServerSocket();

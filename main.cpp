@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstring>
-#include "Server.h"
-#include "Client.h"
+#include "headers/Server.h"
+#include "headers/Client.h"
 
 int main() {
     int choice;
