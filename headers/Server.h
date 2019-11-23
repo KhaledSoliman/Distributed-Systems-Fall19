@@ -15,7 +15,7 @@ private:
 public:
     void sendReply(Message *_message);
 
-    Server(char *_listen_hostname, int _listen_port);
+    Server(std::string _listen_hostname, int _listen_port);
 
     void serveRequest();
 

@@ -4,7 +4,7 @@ UDPClientSocket::UDPClientSocket() : UDPSocket() {
 
 }
 
-bool UDPClientSocket::initializeClient(char *_peerAddr, int _peerPort) {
+bool UDPClientSocket::initializeClient(std::string _peerAddr, int _peerPort) {
     return UDPSocket::initializeClient(_peerAddr, _peerPort);
 }
 

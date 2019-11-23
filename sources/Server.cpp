@@ -3,7 +3,7 @@
 #include "../headers/Message.h"
 #include "../headers/Server.h"
 
-Server::Server(char *_listen_hostname, int _listen_port) {
+Server::Server(std::string _listen_hostname, int _listen_port) {
     this->udpServerSocket = new UDPServerSocket();
     this->udpServerSocket->initializeServer(_listen_hostname, _listen_port);
 }
@@ -13,9 +13,9 @@ void Server::sendReply(Message *_message) {
 }
 
 Message *Server::getRequest() {
-    char *request = static_cast<char *>(malloc(1000));
+    std::string request = static_cast<std::string>(malloc(1000));
     this->udpServerSocket->readFromSocketWithBlock(request, 1000);
-    return new Message(0,request,strlen(request),1);  ;
+    return new Message(0,request,request.size(),1);  ;
 }
 
 Message *Server::doOperation() {
@@ -26,7 +26,7 @@ void Server::serveRequest() {
     Message* msg = getRequest();
     std::cout << "Server Message Received: " << msg->getMessage() << std::endl;
     sendReply(msg);
-    if(strncmp(msg->getMessage(), "q",1) == 0) {
+    if(msg->getMessage() == "q") {
         std::cout << "Server found exit message...\nTerminating Process" << std::endl;
         exit(EXIT_SUCCESS);
     }

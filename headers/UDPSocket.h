@@ -2,14 +2,15 @@
 #define DISTRIBUTED_SYSTEMS_FALL19_UDPSOCKET_H
 
 #include <netinet/in.h>
+#include <string>
 
 class UDPSocket {
 protected:
     int sock;
     sockaddr_in myAddr;
     sockaddr_in peerAddr;
-    char *myAddress;
-    char *peerAddress;
+    std::string myAddress;
+    std::string peerAddress;
     int myPort;
     int peerPort;
     bool enabled;
@@ -17,29 +18,29 @@ protected:
 public:
     UDPSocket();
 
-    void setFilterAddress(char *_filterAddress);
+    void setFilterAddress(std::string _filterAddress);
 
-    char *getFilterAddress();
+    std::string getFilterAddress();
 
-    bool initializeServer(char *_myAddr, int _myPort);
+    bool initializeServer(std::string _myAddr, int _myPort);
 
-    bool initializeClient(char *_peerAddr, int _peerPort);
+    bool initializeClient(std::string _peerAddr, int _peerPort);
 
-    int writeToSocket(char *buffer, int maxBytes);
+    int writeToSocket(std::string buffer, int maxBytes);
 
-    int writeToSocketAndWait(char *buffer, int maxBytes, int microSec);
+    int writeToSocketAndWait(std::string buffer, int maxBytes, int microSec);
 
-    int readFromSocketWithNoBlock(char *buffer, int maxBytes);
+    int readFromSocketWithNoBlock(std::string buffer, int maxBytes);
 
-    int readFromSocketWithTimeout(char *buffer, int maxBytes, int timeoutSec, int timeoutMilli);
+    int readFromSocketWithTimeout(std::string buffer, int maxBytes, int timeoutSec, int timeoutMilli);
 
-    int readFromSocketWithBlock(char *buffer, int maxBytes);
+    int readFromSocketWithBlock(std::string buffer, int maxBytes);
 
-    int readSocketWithNoBlock(char *buffer, int maxBytes);
+    int readSocketWithNoBlock(std::string buffer, int maxBytes);
 
-    int readSocketWithTimeout(char *buffer, int maxBytes, int timeoutSec, int timeoutMilli);
+    int readSocketWithTimeout(std::string buffer, int maxBytes, int timeoutSec, int timeoutMilli);
 
-    int readSocketWithBlock(char *buffer, int maxBytes);
+    int readSocketWithBlock(std::string buffer, int maxBytes);
 
     int getMyPort();
 

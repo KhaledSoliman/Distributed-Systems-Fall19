@@ -7,7 +7,7 @@ class UDPServerSocket : public UDPSocket {
 public:
     UDPServerSocket();
 
-    bool initializeServer(char *_myAddr, int _myPort);
+    bool initializeServer(std::string _myAddr, int _myPort);
 
     ~UDPServerSocket();
 };

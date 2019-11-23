@@ -1,29 +1,36 @@
-
 #include <cstdlib>
+#include <utility>
 #include "../headers/Message.h"
 #include "../headers/base64.h"
+#include <sstream>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
-Message::Message(int operation, char *p_message, size_t p_message_size, int p_rpc_id) {
+
+
+
+Message::Message(MessageType messageType, OperationType operation, std::string message, size_t messageSize,
+                 RPC_ID rpcId) {
     this->operation = operation;
-    this->message = p_message;
-    this->message_size = p_message_size;
-    this->rpc_id = p_rpc_id;
+    this->messageType = messageType;
+    this->message = std::move(message);
+    this->messageSize = messageSize;
+    this->rpcId = RPC_ID(rpcId);
 }
 
-Message::Message(char *marshalled_base64) {
-    char* data = nullptr;
-    int data_length;
-    int alloc_length = Base64decode_len(marshalled_base64);
+Message::Message(const std::string &marshalled_base64) {
+    char *data = nullptr;
+    int alloc_length = Base64decode_len(marshalled_base64.c_str());
     data = static_cast<char *>(malloc(alloc_length));
-    data_length = Base64decode(data, marshalled_base64);
-    this->message = data;
+    Base64decode(data, marshalled_base64.c_str());
+    this->message = std::string(data);
 }
 
-char *Message::marshal() {
-    char* data = static_cast<char *>(this->message);
-    int data_length = this->message_size;
+std::string Message::marshal() {
+    std::string data = static_cast<std::string>(this->message);
+    int data_length = this->messageSize;
     int encoded_data_length = Base64encode_len(data_length);
-    char* base64_string = static_cast<char *>(malloc(encoded_data_length));
+    std::string base64_string = static_cast<std::string>(malloc(encoded_data_length));
     Base64encode(base64_string, data, data_length);
     return NULL;
 }
@@ -33,32 +40,32 @@ int Message::getOperation() {
 }
 
 int Message::getRPCId() {
-    return this->rpc_id;
+    return this->rpcId;
 }
 
-char *Message::getMessage() {
+std::string Message::getMessage() {
     return this->message;
 }
 
 size_t Message::getMessageSize() {
-    return this->message_size;
+    return this->messageSize;
 }
 
 MessageType Message::getMessageType() {
-    return this->message_type;
+    return this->messageType;
 }
 
-void Message::setOperation(int _operation) {
+void Message::setOperation(OperationType _operation) {
     this->operation = _operation;
 }
 
-void Message::setMessage(char *message, size_t message_size) {
+void Message::setMessage(std::string message, size_t message_size) {
     this->message = message;
-    this->message_size = message_size;
+    this->messageSize = message_size;
 }
 
 void Message::setMessageType(MessageType message_type) {
-    this->message_type = message_type;
+    this->messageType = message_type;
 }
 
 Message::~Message() {

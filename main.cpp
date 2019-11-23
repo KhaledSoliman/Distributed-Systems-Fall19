@@ -14,7 +14,7 @@ int main() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
             while(1) {
-                char *serverHostname = static_cast<char *>(malloc(300));
+                std::string serverHostname = static_cast<std::string>(malloc(300));
                 int serverPort;
                 std::cout << "Enter destination server IPv4:" << std::endl;
                 std::cin >> serverHostname;
@@ -23,7 +23,7 @@ int main() {
                 std::cin.ignore();
                 Client c = Client(serverHostname, serverPort);
                 while (1) {
-                    char *message = static_cast<char *>(malloc(300));
+                    std::stringmessage = static_cast<std::string>(malloc(300));
                     do {
                         std::cout << "Input the message to be sent to the destination server:\n";
                         std::cin.getline(message, 300, '\n');
@@ -38,7 +38,7 @@ int main() {
             }
         }
         case 2: {
-            char *listenHostname = static_cast<char *>(malloc(300));
+            std::string listenHostname = static_cast<std::string>(malloc(300));
             int listenPort;
             std::cout << "Enter server listening IPv4: " << std::endl;
             std::cin >> listenHostname;

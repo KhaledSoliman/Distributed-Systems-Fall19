@@ -4,7 +4,7 @@ UDPServerSocket::UDPServerSocket() : UDPSocket() {
 
 }
 
-bool UDPServerSocket::initializeServer(char *_myAddr, int _myPort) {
+bool UDPServerSocket::initializeServer(std::string _myAddr, int _myPort) {
     return UDPSocket::initializeServer(_myAddr, _myPort);
 }
 
