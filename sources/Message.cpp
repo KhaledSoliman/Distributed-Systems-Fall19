@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <utility>
 #include "../headers/Message.h"
-#include "../headers/base64.h"
 #include <sstream>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
 
 
@@ -18,20 +18,11 @@ Message::Message(MessageType messageType, OperationType operation, std::string m
     this->rpcId = RPC_ID(rpcId);
 }
 
-Message::Message(const std::string &marshalled_base64) {
-    char *data = nullptr;
-    int alloc_length = Base64decode_len(marshalled_base64.c_str());
-    data = static_cast<char *>(malloc(alloc_length));
-    Base64decode(data, marshalled_base64.c_str());
-    this->message = std::string(data);
+Message::Message(char* marshalled_base64) {
+    std::string decoded = boost::beast::detail::base64_decode(std::string(marshalled_base64));
 }
 
 std::string Message::marshal() {
-    std::string data = static_cast<std::string>(this->message);
-    int data_length = this->messageSize;
-    int encoded_data_length = Base64encode_len(data_length);
-    std::string base64_string = static_cast<std::string>(malloc(encoded_data_length));
-    Base64encode(base64_string, data, data_length);
     return NULL;
 }
 
@@ -39,7 +30,7 @@ int Message::getOperation() {
     return this->operation;
 }
 
-int Message::getRPCId() {
+Message::RPC_ID Message::getRPCId() {
     return this->rpcId;
 }
 
@@ -51,7 +42,7 @@ size_t Message::getMessageSize() {
     return this->messageSize;
 }
 
-MessageType Message::getMessageType() {
+Message::MessageType Message::getMessageType() {
     return this->messageType;
 }
 

@@ -20,8 +20,6 @@
 #include <boost/serialization/map.hpp>
 
 namespace MessageStructures {
-    using std::vector;
-    using std::string;
 
     namespace Control {
         struct Error {
@@ -35,42 +33,26 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] bool isFlag() const {
-                return flag;
-            }
+            [[nodiscard]] bool isFlag() const;
 
-            void setFlag(bool flag) {
-                this->flag = flag;
-            }
+            void setFlag(bool flag);
 
-            [[nodiscard]] const std::string &getMsg() const {
-                return msg;
-            }
+            [[nodiscard]] const std::string &getMsg() const;
 
-            void setMsg(const std::string &msg) {
-                this->msg = msg;
-            }
+            void setMsg(const std::string &msg);
         };
 
         struct realSockAddr : public sockaddr {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & this->sa_data;
-                ar & this->sa_family;
-                //ar & this->sa_len;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
-            realSockAddr() {}
+            realSockAddr();
 
-            realSockAddr(const realSockAddr &other) {
-                memcpy(sa_data, other.sa_data, sizeof(other.sa_data));
-                sa_family = other.sa_family;
-                //sa_len = other.sa_len;
-            }
+            realSockAddr(const realSockAddr &other);
 
-            realSockAddr(const sockaddr &s) : sockaddr(s) {}
+            realSockAddr(const sockaddr &s);
         };
 
         struct Ack {
@@ -79,10 +61,7 @@ namespace MessageStructures {
             string msg;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & flag;
-                ar & msg;
-            }
+            void serialize(Archive &ar, const unsigned int version);
         };
     }
 
@@ -96,27 +75,16 @@ namespace MessageStructures {
                 std::string token;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version) {
-                    ar & userName;
-                    ar & token;
-                }
+                void serialize(Archive &ar, const unsigned int version);
 
             public:
-                [[nodiscard]] const std::string &getUserName() const {
-                    return userName;
-                }
+                [[nodiscard]] const std::string &getUserName() const;
 
-                void setUserName(const std::string &userName) {
-                    this->userName = userName;
-                }
+                void setUserName(const std::string &userName);
 
-                [[nodiscard]] const std::string &getToken() const {
-                    return token;
-                }
+                [[nodiscard]] const std::string &getToken() const;
 
-                void setToken(const std::string &token) {
-                    this->token = token;
-                }
+                void setToken(const std::string &token);
             };
 
             struct LoginRequest {
@@ -127,27 +95,16 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version) {
-                    ar & userName;
-                    ar & hashedPassword;
-                }
+                void serialize(Archive &ar, const unsigned int version);
 
             public:
-                [[nodiscard]] const std::string &getUserName() const {
-                    return userName;
-                }
+                [[nodiscard]] const std::string &getUserName() const;
 
-                void setUserName(const std::string &userName) {
-                    LoginRequest::userName = userName;
-                }
+                void setUserName(const std::string &userName);
 
-                [[nodiscard]] const std::string &getHashedPassword() const {
-                    return hashedPassword;
-                }
+                [[nodiscard]] const std::string &getHashedPassword() const;
 
-                void setHashedPassword(const std::string &hashedPassword) {
-                    LoginRequest::hashedPassword = hashedPassword;
-                }
+                void setHashedPassword(const std::string &hashedPassword);
             };
 
             struct LoginReply : public Control::Error {
@@ -157,18 +114,12 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version) {
-                    ar & token;
-                }
+                void serialize(Archive &ar, const unsigned int version);
 
             public:
-                [[nodiscard]] const std::string &getToken() const {
-                    return token;
-                }
+                [[nodiscard]] const std::string &getToken() const;
 
-                void setToken(const std::string &token) {
-                    LoginReply::token = token;
-                }
+                void setToken(const std::string &token);
             };
 
             // Logout
@@ -190,27 +141,16 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version) {
-                    ar & user_name;
-                    ar & hashed_password;
-                }
+                void serialize(Archive &ar, const unsigned int version);
 
             public:
-                [[nodiscard]] const std::string &getUserName() const {
-                    return user_name;
-                }
+                [[nodiscard]] const std::string &getUserName() const;
 
-                void setUserName(const std::string &userName) {
-                    user_name = userName;
-                }
+                void setUserName(const std::string &userName);
 
-                [[nodiscard]] const std::string &getHashedPassword() const {
-                    return hashed_password;
-                }
+                [[nodiscard]] const std::string &getHashedPassword() const;
 
-                void setHashedPassword(const std::string &hashedPassword) {
-                    hashed_password = hashedPassword;
-                }
+                void setHashedPassword(const std::string &hashedPassword);
             };
 
             struct RegisterReply : public Control::Error {
@@ -220,18 +160,12 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version) {
-                    ar & registered;
-                }
+                void serialize(Archive &ar, const unsigned int version);
 
             public:
-                bool isRegistered() const {
-                    return registered;
-                }
+                bool isRegistered() const;
 
-                void setRegistered(bool registered) {
-                    RegisterReply::registered = registered;
-                }
+                void setRegistered(bool registered);
             };
         }
 
@@ -251,45 +185,24 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & image_name;
-                ar & img;
-                ar & viewer;
-                ar & limit;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] const std::string &getImageName() const {
-                return image_name;
-            }
+            [[nodiscard]] const std::string &getImageName() const;
 
-            void setImageName(const std::string &imageName) {
-                image_name = imageName;
-            }
+            void setImageName(const std::string &imageName);
 
-            [[nodiscard]] const vector<unsigned char> &getImg() const {
-                return img;
-            }
+            [[nodiscard]] const std::vector<unsigned char> &getImg() const;
 
-            void setImg(const vector<unsigned char> &img) {
-                AddImageRequest::img = img;
-            }
+            void setImg(const std::vector<unsigned char> &img);
 
-            [[nodiscard]] const std::string &getViewer() const {
-                return viewer;
-            }
+            [[nodiscard]] const std::string &getViewer() const;
 
-            void setViewer(const std::string &viewer) {
-                AddImageRequest::viewer = viewer;
-            }
+            void setViewer(const std::string &viewer);
 
-            [[nodiscard]] int getLimit() const {
-                return limit;
-            }
+            [[nodiscard]] int getLimit() const;
 
-            void setLimit(int limit) {
-                AddImageRequest::limit = limit;
-            }
+            void setLimit(int limit);
         };
 
         struct AddImageReply : public Control::Error {
@@ -306,34 +219,31 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & userName;
-                ar & imageName;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] const std::string &getUserName() const {
-                return userName;
-            }
+            [[nodiscard]] const std::string &getUserName() const;
 
-            void setUserName(const std::string &userName) {
-                ViewImageRequest::userName = userName;
-            }
+            void setUserName(const std::string &userName);
 
-            [[nodiscard]] const std::string &getImageName() const {
-                return imageName;
-            }
+            [[nodiscard]] const std::string &getImageName() const;
 
-            void setImageName(const std::string &imageName) {
-                ViewImageRequest::imageName = imageName;
-            }
+            void setImageName(const std::string &imageName);
         };
 
         struct ViewImageReply : public Control::Error {
         private:
             Image image;
-        public:
 
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version);
+
+        public:
+            [[nodiscard]] const Image &getImage() const;
+
+            void setImage(const Image &image);
         };
 
         // Delete Image
@@ -345,27 +255,16 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & userName;
-                ar & imageName;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] const std::string &getUserName1() const {
-                return userName;
-            }
+            [[nodiscard]] const std::string &getUserName1() const;
 
-            void setUserName1(const std::string &userName) {
-                DeleteImageRequest::userName = userName;
-            }
+            void setUserName1(const std::string &userName);
 
-            [[nodiscard]] const string &getImageName() const {
-                return imageName;
-            }
+            [[nodiscard]] const std::string &getImageName() const;
 
-            void setImageName(const std::string &imageName) {
-                DeleteImageRequest::imageName = imageName;
-            }
+            void setImageName(const std::string &imageName);
         };
 
         struct DeleteImageReply : public Control::Error {
@@ -383,36 +282,20 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & userName;
-                ar & imageName;
-                ar & viewerName;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            const string &getUserName1() const {
-                return userName;
-            }
+            const string &getUserName1() const;
 
-            void setUserName1(const string &userName) {
-                AddViewerRequest::userName = userName;
-            }
+            void setUserName1(const string &userName);
 
-            const string &getImageName() const {
-                return imageName;
-            }
+            const string &getImageName() const;
 
-            void setImageName(const string &imageName) {
-                AddViewerRequest::imageName = imageName;
-            }
+            void setImageName(const string &imageName);
 
-            const string &getViewerName() const {
-                return viewerName;
-            }
+            const string &getViewerName() const;
 
-            void setViewerName(const string &viewerName) {
-                AddViewerRequest::viewerName = viewerName;
-            }
+            void setViewerName(const string &viewerName);
         };
 
         struct AddViewerReply : Control::Error {
@@ -424,41 +307,25 @@ namespace MessageStructures {
         private:
             std::string token;
             std::string name;
-            vector<std::string> to_remove;
+            std::vector<std::string> to_remove;
 
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & token;
-                ar & name;
-                ar & to_remove;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            const string &getToken1() const {
-                return token;
-            }
+            const std::string &getToken1() const;
 
-            void setToken1(const string &token) {
-                RemoveViewerRequest::token = token;
-            }
+            void setToken1(const std::string &token);
 
-            const string &getName() const {
-                return name;
-            }
+            const std::string &getName() const;
 
-            void setName(const string &name) {
-                RemoveViewerRequest::name = name;
-            }
+            void setName(const std::string &name);
 
-            const vector<std::string> &getToRemove() const {
-                return to_remove;
-            }
+            const std::vector<std::string> &getToRemove() const;
 
-            void setToRemove(const vector<std::string> &toRemove) {
-                to_remove = toRemove;
-            }
+            void setToRemove(const std::vector<std::string> &toRemove);
         };
 
         struct RemoveViewerReply : Control::Error {
@@ -476,36 +343,20 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & token;
-                ar & name;
-                ar & newLimit;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] const std::string &getToken1() const {
-                return token;
-            }
+            [[nodiscard]] const std::string &getToken1() const;
 
-            void setToken1(const std::string &token) {
-                UpdateLimitRequest::token = token;
-            }
+            void setToken1(const std::string &token);
 
-            [[nodiscard]] const string &getName() const {
-                return name;
-            }
+            [[nodiscard]] const string &getName() const;
 
-            void setName(const std::string &name) {
-                UpdateLimitRequest::name = name;
-            }
+            void setName(const std::string &name);
 
-            [[nodiscard]] int getNewLimit() const {
-                return newLimit;
-            }
+            [[nodiscard]] int getNewLimit() const;
 
-            void setNewLimit(int newLimit) {
-                UpdateLimitRequest::newLimit = newLimit;
-            }
+            void setNewLimit(int newLimit);
         };
 
         struct UpdateLimitReply : public Control::Error {
@@ -526,9 +377,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & users_ips;
-            }
+            void serialize(Archive &ar, const unsigned int version);
         };
 
         struct SendMessageRequest : public Authentication::AuthRequest {
@@ -538,79 +387,20 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version) {
-                ar & message;
-            }
+            void serialize(Archive &ar, const unsigned int version);
 
         public:
-            const string &getMessage() const {
-                return message;
-            }
+            const std::string &getMessage() const;
 
-            void setMessage(const string &message) {
-                SendMessageRequest::message = message;
-            }
+            void setMessage(const std::string &message);
         };
     }
-
 }
 
 template<typename T>
-std::string save(const T &t) {
-    std::ostringstream archiveStream;
-    boost::archive::text_oarchive archive(archiveStream, boost::archive::no_header);
-    archive << t;
-    return archiveStream.str();
-}
+std::string save(const T &t);
 
 template<typename T>
-T load(const std::string &message) {
-    T t;
-    std::stringstream archiveStream;
-    archiveStream << message;
-    boost::archive::text_iarchive archive(archiveStream, boost::archive::no_header);
-    archive >> t;
-    return t;
-}
-
-#define OBJECT_SERIALIZATION(T) template std::string save(const T &t); template T load(const std::string &message);
-//Register
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::RegisterRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::RegisterReply)
-//Login
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LoginRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LoginReply)
-//Logout
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LogoutRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LogoutReply)
-//Add Image
-OBJECT_SERIALIZATION(MessageStructures::User::AddImageRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::AddImageReply)
-//Delete Image
-OBJECT_SERIALIZATION(MessageStructures::User::DeleteImageRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::DeleteImageReply)
-//Add Viewer
-OBJECT_SERIALIZATION(MessageStructures::User::AddViewerRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::AddViewerReply)
-//Remove Viewer
-OBJECT_SERIALIZATION(MessageStructures::User::RemoveViewerRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::RemoveViewerReply)
-//Update Limit
-OBJECT_SERIALIZATION(MessageStructures::User::UpdateLimitRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::UpdateLimitReply)
-//Search
-OBJECT_SERIALIZATION(MessageStructures::User::SearchRequest)
-
-OBJECT_SERIALIZATION(MessageStructures::User::SearchReply)
-//Search
-OBJECT_SERIALIZATION(MessageStructures::User::SendMessageRequest)
+T load(const std::string &message);
 
 #endif //PROJ_MESSAGESTRUCTURES_H
