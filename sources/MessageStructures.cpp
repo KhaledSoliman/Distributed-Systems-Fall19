@@ -1,4 +1,5 @@
 #include "../headers/MessageStructures.h"
+#include "../headers/Message.h"
 
 template<class Archive>
 void MessageStructures::Control::Error::serialize(Archive &ar, const unsigned int version) {
@@ -225,7 +226,7 @@ void MessageStructures::User::DeleteImageRequest::setUserName1(const std::string
     this->userName = userName;
 }
 
-[[nodiscard]] const string &MessageStructures::User::DeleteImageRequest::getImageName() const {
+const std::string &MessageStructures::User::DeleteImageRequest::getImageName() const {
     return imageName;
 }
 
@@ -244,7 +245,7 @@ const std::string &MessageStructures::User::AddViewerRequest::getUserName1() con
     return userName;
 }
 
-void MessageStructures::User::AddViewerRequest::setUserName1(const string &userName) {
+void MessageStructures::User::AddViewerRequest::setUserName1(const std::string &userName) {
     this->userName = userName;
 }
 
@@ -401,5 +402,7 @@ OBJECT_SERIALIZATION(MessageStructures::User::SearchRequest)
 OBJECT_SERIALIZATION(MessageStructures::User::SearchReply)
 //Search
 OBJECT_SERIALIZATION(MessageStructures::User::SendMessageRequest)
+
+OBJECT_SERIALIZATION(Message)
 
 

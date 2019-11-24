@@ -42,6 +42,8 @@ public:
 
     Message(MessageType messageType, OperationType operation, std::string message, size_t messageSize, RPC_ID rpcId);
 
+    Message();
+
     Message(char* marshalled_base64);
 
     std::string marshal();

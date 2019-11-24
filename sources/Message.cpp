@@ -1,16 +1,11 @@
 #include <cstdlib>
 #include <utility>
 #include "../headers/Message.h"
-#include <sstream>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include "../headers/MessageStructures.h"
 #include <boost/beast/core/detail/base64.hpp>
 
-
-
-
-Message::Message(MessageType messageType, OperationType operation, std::string message, size_t messageSize,
-                 RPC_ID rpcId) {
+Message::Message(Message::MessageType messageType, Message::OperationType operation, std::string message, size_t messageSize,
+                 Message::RPC_ID rpcId) {
     this->operation = operation;
     this->messageType = messageType;
     this->message = std::move(message);
@@ -20,10 +15,14 @@ Message::Message(MessageType messageType, OperationType operation, std::string m
 
 Message::Message(char* marshalled_base64) {
     std::string decoded = boost::beast::detail::base64_decode(std::string(marshalled_base64));
+    auto msg = load<Message>(decoded);
+    *this = msg;
 }
 
 std::string Message::marshal() {
-    return NULL;
+    std::string serialized = save<Message>(*this);
+    std::string encoded = boost::beast::detail::base64_decode(serialized);
+    return encoded;
 }
 
 int Message::getOperation() {
@@ -62,3 +61,5 @@ void Message::setMessageType(MessageType message_type) {
 Message::~Message() {
 
 }
+
+Message::Message() {}
