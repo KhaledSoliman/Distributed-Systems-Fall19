@@ -1,3 +1,4 @@
 # Distributed-Systems-Fall19
-
-sudo apt-get install steghide
+OpenCV 2
+Boost v1.66+
+Qt 5.12.6
