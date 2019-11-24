@@ -1,347 +1,352 @@
 #include "../headers/MessageStructures.h"
 #include "../headers/Message.h"
 
+using namespace MessageStructures;
+using namespace MessageStructures::Control;
+using namespace MessageStructures::User;
+using namespace MessageStructures::User::Authentication;
+
 template<class Archive>
-void MessageStructures::Control::Error::serialize(Archive &ar, const unsigned int version) {
+void Error::serialize(Archive &ar, const unsigned int version) {
     ar & flag;
     ar & msg;
 }
 
-bool MessageStructures::Control::Error::isFlag() const {
+bool Error::isFlag() const {
     return flag;
 }
 
-void MessageStructures::Control::Error::setFlag(bool flag) {
+void Error::setFlag(bool flag) {
     this->flag = flag;
 }
 
-const std::string &MessageStructures::Control::Error::getMsg() const {
+const std::string &Error::getMsg() const {
     return msg;
 }
 
-void MessageStructures::Control::Error::setMsg(const std::string &msg) {
+void Error::setMsg(const std::string &msg) {
     this->msg = msg;
 }
 
 template<class Archive>
-void MessageStructures::Control::realSockAddr::serialize(Archive &ar, const unsigned int version) {
+void realSockAddr::serialize(Archive &ar, const unsigned int version) {
     ar & this->sa_data;
     ar & this->sa_family;
     //ar & this->sa_len;
 }
 
-MessageStructures::Control::realSockAddr::realSockAddr() {
+realSockAddr::realSockAddr() {
 
 }
 
-MessageStructures::Control::realSockAddr::realSockAddr(const MessageStructures::Control::realSockAddr &other) {
+realSockAddr::realSockAddr(const realSockAddr &other) {
     memcpy(sa_data, other.sa_data, sizeof(other.sa_data));
     sa_family = other.sa_family;
     //sa_len = other.sa_len;
 }
 
-MessageStructures::Control::realSockAddr::realSockAddr(const sockaddr &s) : sockaddr(s) {
+realSockAddr::realSockAddr(const sockaddr &s) : sockaddr(s) {
 
 }
 
 template<class Archive>
-void MessageStructures::User::Authentication::AuthRequest::serialize(Archive &ar, const unsigned int version) {
+void AuthRequest::serialize(Archive &ar, const unsigned int version) {
     ar & userName;
     ar & token;
 }
 
-const std::string &MessageStructures::User::Authentication::AuthRequest::getUserName() const {
+const std::string &AuthRequest::getUserName() const {
     return userName;
 }
 
-void MessageStructures::User::Authentication::AuthRequest::setUserName(const std::string &userName) {
+void AuthRequest::setUserName(const std::string &userName) {
     this->userName = userName;
 }
 
-const std::string &MessageStructures::User::Authentication::AuthRequest::getToken() const {
+const std::string &AuthRequest::getToken() const {
     return token;
 }
 
-void MessageStructures::User::Authentication::AuthRequest::setToken(const std::string &token) {
+void AuthRequest::setToken(const std::string &token) {
     this->token = token;
 }
 
 template<class Archive>
-void MessageStructures::User::Authentication::LoginRequest::serialize(Archive &ar, const unsigned int version) {
+void LoginRequest::serialize(Archive &ar, const unsigned int version) {
     ar & userName;
     ar & hashedPassword;
 }
 
-const std::string &MessageStructures::User::Authentication::LoginRequest::getUserName() const {
+const std::string &LoginRequest::getUserName() const {
     return userName;
 }
 
-void MessageStructures::User::Authentication::LoginRequest::setUserName(const std::string &userName) {
+void LoginRequest::setUserName(const std::string &userName) {
     this->userName = userName;
 }
 
-const std::string &MessageStructures::User::Authentication::LoginRequest::getHashedPassword() const {
+const std::string &LoginRequest::getHashedPassword() const {
     return hashedPassword;
 }
 
-void MessageStructures::User::Authentication::LoginRequest::setHashedPassword(const std::string &hashedPassword) {
+void LoginRequest::setHashedPassword(const std::string &hashedPassword) {
     this->hashedPassword = hashedPassword;
 }
 
 template<class Archive>
-void MessageStructures::User::Authentication::LoginReply::serialize(Archive &ar, const unsigned int version) {
+void LoginReply::serialize(Archive &ar, const unsigned int version) {
     ar & token;
 }
 
-const std::string &MessageStructures::User::Authentication::LoginReply::getToken() const {
+const std::string &LoginReply::getToken() const {
     return token;
 }
 
-void MessageStructures::User::Authentication::LoginReply::setToken(const std::string &token) {
+void LoginReply::setToken(const std::string &token) {
     this->token = token;
 }
 
 template<class Archive>
-void MessageStructures::User::Authentication::RegisterRequest::serialize(Archive &ar, const unsigned int version) {
+void RegisterRequest::serialize(Archive &ar, const unsigned int version) {
     ar & user_name;
     ar & hashed_password;
 }
 
-const std::string &MessageStructures::User::Authentication::RegisterRequest::getUserName() const {
+const std::string &RegisterRequest::getUserName() const {
     return user_name;
 }
 
-void MessageStructures::User::Authentication::RegisterRequest::setUserName(const std::string &userName) {
+void RegisterRequest::setUserName(const std::string &userName) {
     user_name = userName;
 }
 
-const std::string &MessageStructures::User::Authentication::RegisterRequest::getHashedPassword() const {
+const std::string &RegisterRequest::getHashedPassword() const {
     return hashed_password;
 }
 
-void MessageStructures::User::Authentication::RegisterRequest::setHashedPassword(const std::string &hashedPassword) {
+void RegisterRequest::setHashedPassword(const std::string &hashedPassword) {
     hashed_password = hashedPassword;
 
 }
 
 template<class Archive>
-void MessageStructures::User::Authentication::RegisterReply::serialize(Archive &ar, const unsigned int version) {
+void RegisterReply::serialize(Archive &ar, const unsigned int version) {
     ar & registered;
 }
 
-bool MessageStructures::User::Authentication::RegisterReply::isRegistered() const {
+bool RegisterReply::isRegistered() const {
     return registered;
 }
 
-void MessageStructures::User::Authentication::RegisterReply::setRegistered(bool registered) {
+void RegisterReply::setRegistered(bool registered) {
     this->registered = registered;
 }
 
 template<class Archive>
-void MessageStructures::User::AddImageRequest::serialize(Archive &ar, const unsigned int version) {
+void AddImageRequest::serialize(Archive &ar, const unsigned int version) {
     ar & image_name;
     ar & img;
     ar & viewer;
     ar & limit;
 }
 
-const std::string &MessageStructures::User::AddImageRequest::getImageName() const {
+const std::string &AddImageRequest::getImageName() const {
     return image_name;
 }
 
-void MessageStructures::User::AddImageRequest::setImageName(const std::string &imageName) {
+void AddImageRequest::setImageName(const std::string &imageName) {
     image_name = imageName;
 }
 
-const std::vector<unsigned char> &MessageStructures::User::AddImageRequest::getImg() const {
+const std::vector<unsigned char> &AddImageRequest::getImg() const {
     return img;
 }
 
-void MessageStructures::User::AddImageRequest::setImg(const std::vector<unsigned char> &img) {
+void AddImageRequest::setImg(const std::vector<unsigned char> &img) {
     this->img = img;
 }
 
-const std::string &MessageStructures::User::AddImageRequest::getViewer() const {
+const std::string &AddImageRequest::getViewer() const {
     return viewer;
 }
 
-void MessageStructures::User::AddImageRequest::setViewer(const std::string &viewer) {
+void AddImageRequest::setViewer(const std::string &viewer) {
     this->viewer = viewer;
 }
 
-int MessageStructures::User::AddImageRequest::getLimit() const {
+int AddImageRequest::getLimit() const {
     return limit;
 }
 
-void MessageStructures::User::AddImageRequest::setLimit(int limit) {
+void AddImageRequest::setLimit(int limit) {
     this->limit = limit;
 }
 
 template<class Archive>
-void MessageStructures::User::ViewImageRequest::serialize(Archive &ar, const unsigned int version) {
+void ViewImageRequest::serialize(Archive &ar, const unsigned int version) {
     ar & userName;
     ar & imageName;
 }
 
-const std::string &MessageStructures::User::ViewImageRequest::getUserName() const {
+const std::string &ViewImageRequest::getUserName() const {
     return userName;
 }
 
-void MessageStructures::User::ViewImageRequest::setUserName(const std::string &userName) {
+void ViewImageRequest::setUserName(const std::string &userName) {
     this->userName = userName;
 }
 
-const std::string &MessageStructures::User::ViewImageRequest::getImageName() const {
+const std::string &ViewImageRequest::getImageName() const {
     return imageName;
 }
 
-void MessageStructures::User::ViewImageRequest::setImageName(const std::string &imageName) {
+void ViewImageRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
 template<class Archive>
-void MessageStructures::User::ViewImageReply::serialize(Archive &ar, const unsigned int version) {
+void ViewImageReply::serialize(Archive &ar, const unsigned int version) {
     ar & image;
 }
 
-const MessageStructures::User::Image &MessageStructures::User::ViewImageReply::getImage() const {
+const Image &ViewImageReply::getImage() const {
     return image;
 }
 
-void MessageStructures::User::ViewImageReply::setImage(const MessageStructures::User::Image &image) {
+void ViewImageReply::setImage(const Image &image) {
     this->image = image;
 }
 
 template<class Archive>
-void MessageStructures::User::DeleteImageRequest::serialize(Archive &ar, const unsigned int version) {
+void DeleteImageRequest::serialize(Archive &ar, const unsigned int version) {
     ar & userName;
     ar & imageName;
 }
 
-const std::string &MessageStructures::User::DeleteImageRequest::getUserName1() const {
+const std::string &DeleteImageRequest::getUserName1() const {
     return userName;
 }
 
-void MessageStructures::User::DeleteImageRequest::setUserName1(const std::string &userName) {
+void DeleteImageRequest::setUserName1(const std::string &userName) {
     this->userName = userName;
 }
 
-const std::string &MessageStructures::User::DeleteImageRequest::getImageName() const {
+const std::string &DeleteImageRequest::getImageName() const {
     return imageName;
 }
 
-void MessageStructures::User::DeleteImageRequest::setImageName(const std::string &imageName) {
+void DeleteImageRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
 template<class Archive>
-void MessageStructures::User::AddViewerRequest::serialize(Archive &ar, const unsigned int version) {
+void AddViewerRequest::serialize(Archive &ar, const unsigned int version) {
     ar & userName;
     ar & imageName;
     ar & viewerName;
 }
 
-const std::string &MessageStructures::User::AddViewerRequest::getUserName1() const {
+const std::string &AddViewerRequest::getUserName1() const {
     return userName;
 }
 
-void MessageStructures::User::AddViewerRequest::setUserName1(const std::string &userName) {
+void AddViewerRequest::setUserName1(const std::string &userName) {
     this->userName = userName;
 }
 
-const std::string &MessageStructures::User::AddViewerRequest::getImageName() const {
+const std::string &AddViewerRequest::getImageName() const {
     return imageName;
 }
 
-void MessageStructures::User::AddViewerRequest::setImageName(const std::string &imageName) {
+void AddViewerRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
-void MessageStructures::User::AddViewerRequest::setViewerName(const std::string &viewerName) {
+void AddViewerRequest::setViewerName(const std::string &viewerName) {
     this->viewerName = viewerName;
 }
 
-const std::string &MessageStructures::User::AddViewerRequest::getViewerName() const {
+const std::string &AddViewerRequest::getViewerName() const {
     return viewerName;
 }
 
 template<class Archive>
-void MessageStructures::User::RemoveViewerRequest::serialize(Archive &ar, const unsigned int version) {
+void RemoveViewerRequest::serialize(Archive &ar, const unsigned int version) {
     ar & token;
     ar & name;
     ar & to_remove;
 }
 
-const std::string &MessageStructures::User::RemoveViewerRequest::getToken1() const {
+const std::string &RemoveViewerRequest::getToken1() const {
     return token;
 }
 
-void MessageStructures::User::RemoveViewerRequest::setToken1(const std::string &token) {
+void RemoveViewerRequest::setToken1(const std::string &token) {
     RemoveViewerRequest::token = token;
 }
 
-const std::string &MessageStructures::User::RemoveViewerRequest::getName() const {
+const std::string &RemoveViewerRequest::getName() const {
     return name;
 }
 
-void MessageStructures::User::RemoveViewerRequest::setName(const std::string &name) {
+void RemoveViewerRequest::setName(const std::string &name) {
     this->name = name;
 }
 
-const std::vector<std::string> &MessageStructures::User::RemoveViewerRequest::getToRemove() const {
+const std::vector<std::string> &RemoveViewerRequest::getToRemove() const {
     return to_remove;
 }
 
-void MessageStructures::User::RemoveViewerRequest::setToRemove(const std::vector<std::string> &toRemove) {
+void RemoveViewerRequest::setToRemove(const std::vector<std::string> &toRemove) {
     to_remove = toRemove;
 }
 
 template<class Archive>
-void MessageStructures::User::UpdateLimitRequest::serialize(Archive &ar, const unsigned int version) {
+void UpdateLimitRequest::serialize(Archive &ar, const unsigned int version) {
     ar & token;
     ar & name;
     ar & newLimit;
 }
 
-const std::string &MessageStructures::User::UpdateLimitRequest::getToken1() const {
+const std::string &UpdateLimitRequest::getToken1() const {
     return token;
 }
 
-void MessageStructures::User::UpdateLimitRequest::setToken1(const std::string &token) {
+void UpdateLimitRequest::setToken1(const std::string &token) {
     UpdateLimitRequest::token = token;
 }
 
-const std::string &MessageStructures::User::UpdateLimitRequest::getName() const {
+const std::string &UpdateLimitRequest::getName() const {
     return name;
 }
 
-void MessageStructures::User::UpdateLimitRequest::setName(const std::string &name) {
+void UpdateLimitRequest::setName(const std::string &name) {
     this->name = name;
 }
 
-int MessageStructures::User::UpdateLimitRequest::getNewLimit() const {
+int UpdateLimitRequest::getNewLimit() const {
     return newLimit;
 }
 
-void MessageStructures::User::UpdateLimitRequest::setNewLimit(int newLimit) {
+void UpdateLimitRequest::setNewLimit(int newLimit) {
     this->newLimit = newLimit;
 }
 
 template<class Archive>
-void MessageStructures::User::SearchReply::serialize(Archive &ar, const unsigned int version) {
+void SearchReply::serialize(Archive &ar, const unsigned int version) {
     ar & users_ips;
 }
 
 template<class Archive>
-void MessageStructures::User::SendMessageRequest::serialize(Archive &ar, const unsigned int version) {
+void SendMessageRequest::serialize(Archive &ar, const unsigned int version) {
     ar & message;
 }
 
-const std::string &MessageStructures::User::SendMessageRequest::getMessage() const {
+const std::string &SendMessageRequest::getMessage() const {
     return message;
 }
 
-void MessageStructures::User::SendMessageRequest::setMessage(const std::string &message) {
+void SendMessageRequest::setMessage(const std::string &message) {
     this->message = message;
 }
 
@@ -365,43 +370,43 @@ T load(const std::string &message) {
 
 #define OBJECT_SERIALIZATION(T) template std::string save(const T &t); template T load(const std::string &message);
 //Register
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::RegisterRequest)
+OBJECT_SERIALIZATION(RegisterRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::RegisterReply)
+OBJECT_SERIALIZATION(RegisterReply)
 //Login
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LoginRequest)
+OBJECT_SERIALIZATION(LoginRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LoginReply)
+OBJECT_SERIALIZATION(LoginReply)
 //Logout
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LogoutRequest)
+OBJECT_SERIALIZATION(LogoutRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::Authentication::LogoutReply)
+OBJECT_SERIALIZATION(LogoutReply)
 //Add Image
-OBJECT_SERIALIZATION(MessageStructures::User::AddImageRequest)
+OBJECT_SERIALIZATION(AddImageRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::AddImageReply)
+OBJECT_SERIALIZATION(AddImageReply)
 //Delete Image
-OBJECT_SERIALIZATION(MessageStructures::User::DeleteImageRequest)
+OBJECT_SERIALIZATION(DeleteImageRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::DeleteImageReply)
+OBJECT_SERIALIZATION(DeleteImageReply)
 //Add Viewer
-OBJECT_SERIALIZATION(MessageStructures::User::AddViewerRequest)
+OBJECT_SERIALIZATION(AddViewerRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::AddViewerReply)
+OBJECT_SERIALIZATION(AddViewerReply)
 //Remove Viewer
-OBJECT_SERIALIZATION(MessageStructures::User::RemoveViewerRequest)
+OBJECT_SERIALIZATION(RemoveViewerRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::RemoveViewerReply)
+OBJECT_SERIALIZATION(RemoveViewerReply)
 //Update Limit
-OBJECT_SERIALIZATION(MessageStructures::User::UpdateLimitRequest)
+OBJECT_SERIALIZATION(UpdateLimitRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::UpdateLimitReply)
+OBJECT_SERIALIZATION(UpdateLimitReply)
 //Search
-OBJECT_SERIALIZATION(MessageStructures::User::SearchRequest)
+OBJECT_SERIALIZATION(SearchRequest)
 
-OBJECT_SERIALIZATION(MessageStructures::User::SearchReply)
+OBJECT_SERIALIZATION(SearchReply)
 //Search
-OBJECT_SERIALIZATION(MessageStructures::User::SendMessageRequest)
+OBJECT_SERIALIZATION(SendMessageRequest)
 
 OBJECT_SERIALIZATION(Message)
 

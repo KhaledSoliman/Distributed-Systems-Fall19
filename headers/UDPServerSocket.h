@@ -1,6 +1,7 @@
 #ifndef DISTRIBUTED_SYSTEMS_FALL19_UDPSERVERSOCKET_H
 #define DISTRIBUTED_SYSTEMS_FALL19_UDPSERVERSOCKET_H
 
+#include <string>
 #include "UDPSocket.h"
 
 class UDPServerSocket : public UDPSocket {

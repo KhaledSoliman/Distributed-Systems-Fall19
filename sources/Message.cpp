@@ -10,7 +10,7 @@ Message::Message(Message::MessageType messageType, Message::OperationType operat
     this->messageType = messageType;
     this->message = std::move(message);
     this->messageSize = messageSize;
-    this->rpcId = RPC_ID(rpcId);
+    this->rpcId = rpcId;
 }
 
 Message::Message(char* marshalled_base64) {
@@ -21,7 +21,7 @@ Message::Message(char* marshalled_base64) {
 
 std::string Message::marshal() {
     std::string serialized = save<Message>(*this);
-    std::string encoded = boost::beast::detail::base64_decode(serialized);
+    std::string encoded = boost::beast::detail::base64_encode(serialized);
     return encoded;
 }
 
@@ -63,3 +63,23 @@ Message::~Message() {
 }
 
 Message::Message() {}
+
+bool Message::verifyFragmentation() {
+    return (this->message.length()/10240 > 1);
+}
+
+Message** Message::fragment() {
+    char* buffer = &this->message[0];
+    int bufferLen = std::strlen(buffer);
+    int factor = bufferLen / MAX_MESSAGE_SIZE;
+    Message* msgs[factor];
+    if (factor > 1) {
+        int fragmentNum = factor;
+        while (fragmentNum > 0) {
+            char *newBuffer = buffer + (factor - fragmentNum) * MAX_MESSAGE_SIZE;
+            msgs[(factor - fragmentNum)] = new Message(this->messageType, this->operation, this->message, this->messageSize, this->rpcId);
+            fragmentNum--;
+        }
+    }
+    return msgs;
+}

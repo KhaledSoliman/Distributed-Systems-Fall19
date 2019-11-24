@@ -3,6 +3,11 @@
 
 #include <cstdio>
 #include <string>
+#include <boost/date_time/posix_time/time_serialize.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
+#include <boost/serialization/access.hpp>
+
+#define MAX_MESSAGE_SIZE 10240
 
 class Message {
 public:
@@ -27,15 +32,42 @@ public:
         REMOVE_VIEWER,
         UPDATE_VIEW_LIMIT,
     };
+
     struct RPC_ID {
-        time_t time;
+        boost::posix_time::ptime time;
         std::string address;
         int portNumber;
+        int fragmentId;
+        int messageId;
 
-        RPC_ID();
-        RPC_ID(time_t time, std::string address, int portNumber);
+        RPC_ID() {}
+
+        RPC_ID(boost::posix_time::ptime time, std::string address, int portNumber) {
+            this->time = time;
+            this->address = address;
+            this->portNumber = portNumber;
+        }
+
+        int getFragmentId() const {
+            return fragmentId;
+        }
+
+        void setFragmentId(int fragmentId) {
+            RPC_ID::fragmentId = fragmentId;
+        }
+
+        int getMessageId() const {
+            return messageId;
+        }
+
+        void setMessageId(int messageId) {
+            RPC_ID::messageId = messageId;
+        }
+
+    private:
+        friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive &ar, const unsigned int version){
+        void serialize(Archive &ar, const unsigned int version) {
             ar & address & portNumber & time;
         }
     };
@@ -44,7 +76,7 @@ public:
 
     Message();
 
-    Message(char* marshalled_base64);
+    Message(char *marshalled_base64);
 
     std::string marshal();
 
@@ -64,10 +96,10 @@ public:
 
     void setMessageType(MessageType message_type);
 
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* file_version */) {
-        ar & messageType & operation & message & messageSize & rpcId;
-    }
+    bool verifyFragmentation();
+
+    Message** fragment();
+
 
     ~Message();
 
@@ -77,6 +109,12 @@ private:
     std::string message;
     size_t messageSize;
     RPC_ID rpcId;
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int /* file_version */) {
+        ar & messageType & operation & message & messageSize & rpcId;
+    }
 };
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H

@@ -3,19 +3,28 @@
 #include "../headers/Message.h"
 #include "../headers/Server.h"
 
-Server::Server(std::string _listen_hostname, int _listen_port) {
+Server::Server() {
+    this->udpServerSocket = new UDPServerSocket();
+}
+
+Server::Server(const std::string &_listen_hostname, int _listen_port) {
     this->udpServerSocket = new UDPServerSocket();
     this->udpServerSocket->initializeServer(_listen_hostname, _listen_port);
 }
 
+bool Server::listen(const std::string &_listen_hostname, int _listen_port) {
+    return this->udpServerSocket->initializeServer(_listen_hostname, _listen_port);
+}
+
+
 void Server::sendReply(Message *_message) {
-    this->udpServerSocket->writeToSocket(_message->getMessage(), _message->getMessageSize());
+    this->udpServerSocket->writeToSocket(&_message->marshal()[0],_message->marshal().length());
 }
 
 Message *Server::getRequest() {
-    std::string request = static_cast<std::string>(malloc(1000));
-    this->udpServerSocket->readFromSocketWithBlock(request, 1000);
-    return new Message(0,request,request.size(),1);  ;
+    char* message = static_cast<char *>(malloc(MAX_MESSAGE_SIZE));
+    this->udpServerSocket->readFromSocketWithBlock(message, MAX_MESSAGE_SIZE);
+    return new Message(message);  //in new thread
 }
 
 Message *Server::doOperation() {

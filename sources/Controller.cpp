@@ -1,11 +1,3 @@
-//
-//  Controller.cpp
-//  Subscribe
-//
-//  Created by khloud ghattas on 11/23/19.
-//  Copyright © 2019 khloud ghattas. All rights reserved.
-//
-
 #include "Controller.hpp"
 #include "Message.h"
 #include "PeerToPeer.h"

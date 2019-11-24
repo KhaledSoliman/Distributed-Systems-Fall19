@@ -2,6 +2,7 @@
 #define DISTRIBUTED_SYSTEMS_FALL19_UDPCLIENTSOCKET_H
 
 #include "UDPSocket.h"
+#include <string>
 
 class UDPClientSocket : public UDPSocket {
 public:

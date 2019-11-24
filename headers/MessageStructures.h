@@ -58,7 +58,7 @@ namespace MessageStructures {
         struct Ack {
         public:
             bool flag;
-            string msg;
+            std::string msg;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version);
@@ -285,17 +285,17 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version);
 
         public:
-            const string &getUserName1() const;
+            const std::string &getUserName1() const;
 
-            void setUserName1(const string &userName);
+            void setUserName1(const std::string &userName);
 
-            const string &getImageName() const;
+            const std::string &getImageName() const;
 
-            void setImageName(const string &imageName);
+            void setImageName(const std::string &imageName);
 
-            const string &getViewerName() const;
+            const std::string &getViewerName() const;
 
-            void setViewerName(const string &viewerName);
+            void setViewerName(const std::string &viewerName);
         };
 
         struct AddViewerReply : Control::Error {
@@ -350,7 +350,7 @@ namespace MessageStructures {
 
             void setToken1(const std::string &token);
 
-            [[nodiscard]] const string &getName() const;
+            [[nodiscard]] const std::string &getName() const;
 
             void setName(const std::string &name);
 
@@ -363,7 +363,14 @@ namespace MessageStructures {
         private:
         public:
         };
-
+        struct FeedRequest : public Authentication::AuthRequest {
+            private:
+            public:
+        };
+        struct FeedReply : public Control::Error {
+            private:
+            public:
+        };
         // Get all messages
         struct SearchRequest : public Authentication::AuthRequest {
         private:

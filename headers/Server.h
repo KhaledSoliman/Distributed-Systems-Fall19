@@ -15,7 +15,11 @@ private:
 public:
     void sendReply(Message *_message);
 
-    Server(std::string _listen_hostname, int _listen_port);
+    Server();
+
+    Server(const std::string &_listen_hostname, int _listen_port);
+
+    bool listen(const std::string &_listen_hostname, int _listen_port);
 
     void serveRequest();
 

@@ -2,6 +2,7 @@
 #include <cstring>
 #include "headers/Server.h"
 #include "headers/Client.h"
+#include <boost/date_time/posix_time/time_serialize.hpp>
 
 int main() {
     int choice;
@@ -23,22 +24,23 @@ int main() {
                 std::cin.ignore();
                 Client c = Client(serverHostname, serverPort);
                 while (1) {
-                    std::string message;
+                    char* message = static_cast<char*>(malloc(1024));
                     do {
                         std::cout << "Input the message to be sent to the destination server:\n";
-                        std::cin.getline(message, 300, '\n');
+                        std::cin.getline(message, 1024, '\n');
                     } while (strncmp(message, "", 1) == 0);
                     //strcpy(message, "flood");
-                    Message msg = Message(0, message, strlen(message), 1);
-                    msg.setMessageType(MessageType::Request);
-                    c.execute(&msg);
+                    Message::RPC_ID rpc = Message::RPC_ID(boost::posix_time::second_clock::local_time(), "1212", 500);
+                    Message msg = Message(Message::MessageType::Request, Message::OperationType::ECHO, message, strlen(message), rpc);
+                    Message * reply = c.execute(&msg);
+                    std::cout << "Reply From Server: " << reply->getMessage() << std::endl;
                     if (strncmp(message, "q", 1) == 0)
                         break;
                 }
             }
         }
         case 2: {
-            std::string listenHostname = static_cast<std::string>(malloc(300));
+            std::string listenHostname;
             int listenPort;
             std::cout << "Enter server listening IPv4: " << std::endl;
             std::cin >> listenHostname;

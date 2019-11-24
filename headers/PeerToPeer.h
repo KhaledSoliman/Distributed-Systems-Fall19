@@ -28,8 +28,6 @@ class PeerToPeer
     string sUsername;
     string Password;
     vector <PeerToPeer> OnlineMachines;
-    string Username;
-    string IPAddr;
     int PortNo;
     PeerToPeer*CheckOnlineUsername(string Username);
     PeerToPeer(string _Username, string _IPAddr, int _PortNo);

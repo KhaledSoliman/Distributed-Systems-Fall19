@@ -8,7 +8,11 @@ class Client {
 private:
     UDPClientSocket *udpSocket;
 public:
+    Client();
+
     Client(std::string _hostname, int _port);
+
+    bool connectToServer(const std::string &_hostname, int _port);
 
     Message *execute(Message *_message);
 
