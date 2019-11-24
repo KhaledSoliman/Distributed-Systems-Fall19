@@ -7,6 +7,11 @@ Client::Client(std::string _hostname, int _port) {
     this->udpSocket->initializeClient(_hostname, _port);
 }
 
+/**
+ *
+ * @param _message
+ * @return
+ */
 Message *Client::execute(Message *_message) {
     std::string reply;
     this->udpSocket->writeToSocket(_message->getMessage(), _message->getMessageSize());
