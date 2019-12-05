@@ -1,37 +1,40 @@
-//
-// Created by khloud ghattas on 12/4/19.
-//
-#include "Seng.h"
-using namespace std;
-Seng::Seng()
-{
-    return 0;
+#include "../headers/Seng.h"
+#include <iostream>
+#include <fstream>
+#include <stdlib.h>
+
+Seng::Seng() {
+
 }
- void Seng::StringToImage(std::string imagePath, std::string text, std::string password)
-{
-    ofstream outfile;
-    outfile.open("/Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/k.txt");
-    outfile << text;
+
+void Seng::StringToImage(const std::string &imagePath, const std::string &textPath, const std::string &password) {
+    std::ofstream outfile;
+    outfile.open(imagePath);
+    outfile << textPath;
     outfile.close();
     // -cf ---> coverfile filename
     // Specify the cover file that will be used to embed data.
-    string  CommForEmbedding = "steghide embed -cf " + imagePath + " -ef /Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/k.txt -f -p " + password;
-    system(CommForEmbedding.c_str());
-    string CommForDelt = "rm /Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/k.txt";
-    system(CommForDelt.c_str());
+    std::string embedCommand = "steghide embed -cf " + imagePath + " -ef " + textPath + " -f -p " + password;
+    system(embedCommand.c_str());
+    std::string delCommand = "rm " + textPath;
+    system(delCommand.c_str());
 }
-string Seng::ImageToString(std::string imagePath, std::string password)
-{
-    string CommForExtracting ="steghide extract --stegofile " + imagePath;
-    CommForExtracting += " -xf  /Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/k.txt -f -p " + password;
-    system(CommForExtracting.c_str());
-      // Deleting part
-    string CommForExtracting = "rm /Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/k.txt";
-    system(CommForExtracting.c_str());
+
+std::string Seng::ImageToString(const std::string& imagePath,const std::string& password) {
+    std::string extractCommand = "steghide extract --stegofile " + imagePath;
+    extractCommand += " -xf k.txt -f -p " + password;
+    system(extractCommand.c_str());
+    std::ifstream in;
+    in.open("k.txt");
+    std::string text((std::istreambuf_iterator<char>(in)),
+                    std::istreambuf_iterator<char>());
+    std::string delCommand = "rm k.txt";
+    system(delCommand.c_str());
+    return text;
 }
-Seng::~Seng()
-{
-    delete;
+
+Seng::~Seng() {
+
 }
 
 
