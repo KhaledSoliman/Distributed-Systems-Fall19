@@ -7,14 +7,16 @@
 
 class Cache{
 public:
-   int views;
-   int ImageName;
-   time_t createdAt;
-   time_t updatedAt;
+
 private:
+    int views;
+    int ImageName;
+    time_t createdAt;
+    time_t updatedAt;
     Cache();
    ~Cache();
-   void UpdateCache(createdAt);
+   void UpdateCache();
+   void InsertCache();
 };
 
 #endif //PROJ_CACHE_H
