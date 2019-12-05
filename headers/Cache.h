@@ -31,7 +31,7 @@ private:
 
     ~Cache();
 
-    void UpdateCache(const boost::posix_time::ptime createdAt);
+    void UpdateCache();
 
     void InsertCache();
 
