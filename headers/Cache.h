@@ -1,41 +1,27 @@
 #ifndef PROJ_CACHE_H
 #define PROJ_CACHE_H
 
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <ctime>
+#include <string>
 
-class Cache {
-public:
-    int getViews() const;
-
-    void setViews(int views);
-
-    int getImageName() const;
-
-    void setImageName(int imageName);
-
-    const boost::posix_time::ptime &getCreatedAt() const;
-
-    void setCreatedAt(const boost::posix_time::ptime &createdAt);
-
-    const boost::posix_time::ptime &getUpdatedAt() const;
-
-    void setUpdatedAt(const boost::posix_time::ptime &updatedAt);
-
+class cache {
 private:
-    int views;
-    int ImageName;
-    boost::posix_time::ptime createdAt;
-    boost::posix_time::ptime updatedAt;
 
-    Cache();
+    time_t updatedAt;
 
-    ~Cache();
+public:
 
-    void UpdateCache();
+    cache();
 
-    void InsertCache();
+    virtual ~cache();
 
-    void RemoveCache();
+    void InsertImage(std::string img, std::string imgName);
+
+    void RemoveImage(std::string imgName);
+
+    void UpdateImage();
+
 };
+
 
 #endif //PROJ_CACHE_H
