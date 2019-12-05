@@ -15,6 +15,12 @@
 #DEFAULT_SERVER_PORT 127.0.0.1
 using namespace std;
 //vector <PeerToPeer> OnlineMachines;
+struct UserImage{
+  string user;
+  vector<string>ImageNames;
+};
+vector<UserImage> subI;
+
 struct image{
     string owner;
     
@@ -55,16 +61,22 @@ bool Message::Sending(string ip, int port)
 {
     return Socket.writeToSocket(message, ip, port);
 }
-void Message::AddImage(string sUsername, string IPp, int Portp)
+void Peer::AddImage(int imageID)
 {
-    
+
+
+
+
+
+
+
     int rpc_id = ++RPC;
     ALL J;
     J.type = MessageType::Request;
     J.ID = rpc_id;
     J.username= username;
     J.password= password;
-    string requestImagesMessage = 
+   // string requestImagesMessage =
     Message mes(MessageType::Request, requestImagesMessage, rpc_id);
     mes.Sending(IPp,Portp);
     Pending.push_back(mes);
@@ -386,9 +398,7 @@ void Message::HandleRequestImage(const QJsonObject &json, string ip, int port)
 {
     int rpcid = -1;
     
-    if(json.contains("RPCId") && json["RPCId"].isDouble())
-    rpcid = json["RPCId"].toInt();
-    
+
     if(rpcid == -1)
     return;
     
