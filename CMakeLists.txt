@@ -15,6 +15,6 @@ add_executable(Proj
         headers/UDPServerSocket.h
         headers/UDPClientSocket.h
         main.cpp
-        sources/Server.cpp sources/Message.cpp sources/UDPSocket.cpp sources/UDPServerSocket.cpp sources/UDPClientSocket.cpp sources/Client.cpp sources/MessageStructures.cpp headers/MessageStructures.h sources/DirectoryServer.cpp headers/DirectoryServer.h headers/DirectoryService.cpp headers/DirectoryService.h headers/Peer.cpp headers/Peer.h headers/Seng.h sources/Seng.cpp headers/Cache.h sources/Cache.cpp headers/ImageBody.h)
+        sources/Server.cpp sources/Message.cpp sources/UDPSocket.cpp sources/UDPServerSocket.cpp sources/UDPClientSocket.cpp sources/Client.cpp sources/MessageStructures.cpp headers/MessageStructures.h sources/DirectoryServer.cpp headers/DirectoryServer.h headers/DirectoryService.cpp headers/DirectoryService.h headers/Peer.cpp headers/Peer.h headers/Seng.h sources/Seng.cpp headers/Cache.h sources/Cache.cpp headers/ImageBody.h sources/ImageBody.cpp)
 set_target_properties(Proj PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
