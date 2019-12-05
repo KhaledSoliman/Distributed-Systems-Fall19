@@ -7,7 +7,6 @@ DirectoryService::DirectoryService(const std::string &hostname, int port,const s
 LoginReply loginUser(std::string username,std::string password)
 {
 
-
 }
 void handleRequest(Message message)
 {
