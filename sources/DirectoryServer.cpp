@@ -22,7 +22,7 @@ void DirectoryServer::saveDatabase() {
 }
 
 std::string DirectoryServer::generateAuthToken() {
-    return std::__cxx11::string();
+    return std::string();
 }
 
 bool DirectoryServer::authenticate(std::string username, std::string hashedPassword) {
