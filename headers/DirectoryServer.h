@@ -20,6 +20,9 @@ using namespace MessageStructures::User::Authentication;
 class DirectoryServer : Server {
 private:
     struct Image {
+        std::string image;
+        std::string imageThumbnail;
+        std::string imageName;
     };
     struct User {
         std::string username;

@@ -39,23 +39,17 @@ void Cache::setUpdatedAt(const boost::posix_time::ptime &updatedAt) {
 Cache::Cache() {
 
 }
+
 void Cache::UpdateCache() {
 
-
 }
-
 void Cache::InsertCache() {
-
-
-
 
 }
 void Cache::RemoveCache() {
 
-
-
-
 }
-~ Cache::Cache() {
+
+Cache::~Cache() {
 
 }

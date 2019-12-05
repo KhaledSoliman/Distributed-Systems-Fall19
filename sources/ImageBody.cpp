@@ -8,3 +8,20 @@ ImageBody::getImageName() const {
 void ImageBody::setImageName(const std::string &imageName) {
     ImageName = imageName;
 }
+
+const std::string &ImageBody::getImagePath() const {
+    return ImagePath;
+}
+
+void ImageBody::setImagePath(const std::string &imagePath) {
+    ImagePath = imagePath;
+}
+ImageBody::ImageBody() {
+
+}
+void ImageBody::StringBase46(std::string String_base64) {
+
+}
+ImageBody::~ImageBody() {
+
+}

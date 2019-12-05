@@ -5,8 +5,18 @@
 #include <boost/date_time/posix_time/time_serialize.hpp>
 
 int main() {
+    std::ifstream in;
+    in.open("/Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/Space.jpg");
+    std::string image((std::istreambuf_iterator<char>(in)),
+                     std::istreambuf_iterator<char>());
+    std::ofstream out;
+    out.open("/Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/sources/Space-out.jpg");
+    out << image;
+    out.close();
+    in.close();
     int choice;
     std::cout << "(Multithreading not enabled)\n"
+
               << "Hello kind sir, Do you want to act as a client or a server?\n"
               << "1: Client, 2: Server\n";
     std::cin >> choice;

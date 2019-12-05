@@ -5,11 +5,22 @@
 class ImageBody{
 public:
     const std::string &getImageName() const;
+
+    const std::string &getImagePath() const;
+
     void setImageName(const std::string &imageName);
+
+    void setImagePath(const std::string &imagePath);
+
 private:
    std::string ImageName;
+
+   std::string ImagePath;
+
    ImageBody();
+
    ~ImageBody();
-  void Base46(const std::string String_base64);
+
+  void StringBase46(std::string String_base64);
 };
 #endif //PROJ_IMAGEBODY_H
