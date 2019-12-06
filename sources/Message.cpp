@@ -64,8 +64,9 @@ Message::~Message() {
 
 Message::Message() {}
 
+
 bool Message::verifyFragmentation() {
-    return (this->message.length()/10240 > 1);
+        return (this->message.length()/MAX_MESSAGE_SIZE > 1);
 }
 
 Message** Message::fragment() {
@@ -77,9 +78,16 @@ Message** Message::fragment() {
         int fragmentNum = factor;
         while (fragmentNum > 0) {
             char *newBuffer = buffer + (factor - fragmentNum) * MAX_MESSAGE_SIZE;
-            msgs[(factor - fragmentNum)] = new Message(this->messageType, this->operation, this->message, this->messageSize, this->rpcId);
+            RPC_ID rpc = RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
+            rpc.setFragmentId(factor);
+            rpc.setMessageId(1);
+            msgs[(factor - fragmentNum)] = new Message(this->messageType, this->operation, newBuffer, bufferLen, rpc);
             fragmentNum--;
         }
     }
     return msgs;
+}
+
+bool Message::isFragmented() {
+    return this->rpcId.fragmentId != 0;
 }

@@ -23,6 +23,10 @@ Message *Client::execute(Message *_message) {
     return new Message(reply);
 }
 
+Message* Client:: {
+
+};
+
 Client::~Client() {
 }
 
