@@ -18,11 +18,11 @@ public:
     enum OperationType {
         ECHO,
         ACK,
-        ERROR,
         HELLO,
         FEED,
         LOGIN,
         LOGOUT,
+        SEARCH,
         REGISTER,
         ADD_IMAGE,
         DOWNLOAD_IMAGE,

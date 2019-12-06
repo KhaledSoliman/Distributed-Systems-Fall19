@@ -13,16 +13,20 @@ using namespace MessageStructures::User::Authentication;
 
 class Peer : Server, Client {
 private:
+    std::string directoryServerHostname;
+    int directoryServerPort;
     std::string username;
+    std::string token;
 public:
-    Peer(const std::string &hostname, int port);
-    void init();
-    Message handleRequest(Message msg);
+    Peer(const std::string &hostname, int port, const std::string& directoryServerHostname, int directoryServerPort);
+    void init(const std::string& username);
+    std::string createThumbnail(const std::string& imagePath);
+    Message handleRequest(Message message);
     UpdateLimitRequest updateLimit(std::string imageName, std::string username, int newLimit);
     AddViewerRequest addViewer(std::string imageName, std::string username);
     RemoveViewerRequest removeViewer(std::string imageName, std::string username);
     SearchRequest searchUser(std::string username);
-    LoginRequest loginUser(std::string password);
+    LoginRequest loginUser(const std::string& password);
     LogoutRequest logoutUser();
     RegisterRequest registerUser(std::string username, std::string password);
     AddImageRequest addImage(std::string imageName);

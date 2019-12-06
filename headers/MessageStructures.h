@@ -18,6 +18,7 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <unordered_map>
 
 namespace MessageStructures {
 
@@ -55,13 +56,27 @@ namespace MessageStructures {
             realSockAddr(const sockaddr &s);
         };
 
-        struct Ack {
+        struct Ack : Error {
+        private:
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version);
         public:
-            bool flag;
+
+        };
+
+        struct Echo {
+        private:
             std::string msg;
+
+            friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version);
+
+        public:
+            const std::string &getMsg() const;
+
+            void setMsg(const std::string &msg);
         };
     }
 
@@ -174,13 +189,17 @@ namespace MessageStructures {
             int limit;
         };
 
+
+        struct Hello : public Authentication::AuthRequest {
+        private:
+        public:
+        };
+
         //Add image
         struct AddImageRequest : public Authentication::AuthRequest {
         private:
             std::string image_name;
-            std::vector<unsigned char> img;
-            std::string viewer;
-            int limit;
+            std::string thumbnail;
 
             friend class boost::serialization::access;
 
@@ -192,17 +211,10 @@ namespace MessageStructures {
 
             void setImageName(const std::string &imageName);
 
-            [[nodiscard]] const std::vector<unsigned char> &getImg() const;
+            const std::string &getThumbnail() const;
 
-            void setImg(const std::vector<unsigned char> &img);
+            void setThumbnail(const std::string &thumbnail);
 
-            [[nodiscard]] const std::string &getViewer() const;
-
-            void setViewer(const std::string &viewer);
-
-            [[nodiscard]] int getLimit() const;
-
-            void setLimit(int limit);
         };
 
         struct AddImageReply : public Control::Error {
@@ -336,7 +348,7 @@ namespace MessageStructures {
         // Update limit
         struct UpdateLimitRequest : Authentication::AuthRequest {
         private:
-            std::string token;
+            std::string targetUsername;
             std::string name;
             int newLimit;
 
@@ -346,9 +358,9 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version);
 
         public:
-            [[nodiscard]] const std::string &getToken1() const;
+            const std::string &getTargetUsername() const;
 
-            void setToken1(const std::string &token);
+            void setTargetUsername(const std::string &targetUsername);
 
             [[nodiscard]] const std::string &getName() const;
 
@@ -363,18 +375,59 @@ namespace MessageStructures {
         private:
         public:
         };
+
         struct FeedRequest : public Authentication::AuthRequest {
-            private:
-            public:
+        private:
+            int lastIndex;
+            int imageNum;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version);
+
+        public:
+            int getLastIndex() const;
+
+            void setLastIndex(int lastIndex);
+
+            int getImageNum() const;
+
+            void setImageNum(int imageNum);
         };
+
         struct FeedReply : public Control::Error {
-            private:
-            public:
+        private:
+            int currentIndex;
+            std::unordered_map<std::string, std::string> images;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version);
+        public:
+            int getCurrentIndex() const;
+
+            void setCurrentIndex(int currentIndex);
+
+            const std::unordered_map<std::string, std::string> &getImages() const;
+
+            void setImages(const std::unordered_map<std::string, std::string> &images);
         };
         // Get all messages
         struct SearchRequest : public Authentication::AuthRequest {
         private:
+            std::string targetUsername;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version);
         public:
+            const std::string &getTargetUsername() const;
+
+            void setTargetUsername(const std::string &targetUsername);
+
         };
 
         struct SearchReply : public Control::Error {

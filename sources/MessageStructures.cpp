@@ -146,9 +146,7 @@ void RegisterReply::setRegistered(bool registered) {
 template<class Archive>
 void AddImageRequest::serialize(Archive &ar, const unsigned int version) {
     ar & image_name;
-    ar & img;
-    ar & viewer;
-    ar & limit;
+    ar & thumbnail;
 }
 
 const std::string &AddImageRequest::getImageName() const {
@@ -159,28 +157,12 @@ void AddImageRequest::setImageName(const std::string &imageName) {
     image_name = imageName;
 }
 
-const std::vector<unsigned char> &AddImageRequest::getImg() const {
-    return img;
+const std::string &AddImageRequest::getThumbnail() const {
+    return thumbnail;
 }
 
-void AddImageRequest::setImg(const std::vector<unsigned char> &img) {
-    this->img = img;
-}
-
-const std::string &AddImageRequest::getViewer() const {
-    return viewer;
-}
-
-void AddImageRequest::setViewer(const std::string &viewer) {
-    this->viewer = viewer;
-}
-
-int AddImageRequest::getLimit() const {
-    return limit;
-}
-
-void AddImageRequest::setLimit(int limit) {
-    this->limit = limit;
+void AddImageRequest::setThumbnail(const std::string &thumbnail) {
+    AddImageRequest::thumbnail = thumbnail;
 }
 
 template<class Archive>
@@ -247,6 +229,27 @@ void AddViewerRequest::serialize(Archive &ar, const unsigned int version) {
     ar & viewerName;
 }
 
+int FeedRequest::getImageNum() const {
+    return imageNum;
+}
+
+void FeedRequest::setImageNum(int imageNum) {
+    FeedRequest::imageNum = imageNum;
+}
+
+int FeedRequest::getLastIndex() const {
+    return lastIndex;
+}
+
+void FeedRequest::setLastIndex(int lastIndex) {
+    FeedRequest::lastIndex = lastIndex;
+}
+
+template<class Archive>
+void FeedRequest::serialize(Archive &ar, const unsigned int version) {
+    ar << imageNum << lastIndex;
+}
+
 const std::string &AddViewerRequest::getUserName1() const {
     return userName;
 }
@@ -304,17 +307,9 @@ void RemoveViewerRequest::setToRemove(const std::vector<std::string> &toRemove) 
 
 template<class Archive>
 void UpdateLimitRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & token;
+    ar & targetUsername;
     ar & name;
     ar & newLimit;
-}
-
-const std::string &UpdateLimitRequest::getToken1() const {
-    return token;
-}
-
-void UpdateLimitRequest::setToken1(const std::string &token) {
-    UpdateLimitRequest::token = token;
 }
 
 const std::string &UpdateLimitRequest::getName() const {
@@ -331,6 +326,14 @@ int UpdateLimitRequest::getNewLimit() const {
 
 void UpdateLimitRequest::setNewLimit(int newLimit) {
     this->newLimit = newLimit;
+}
+
+const std::string &UpdateLimitRequest::getTargetUsername() const {
+    return targetUsername;
+}
+
+void UpdateLimitRequest::setTargetUsername(const std::string &targetUsername) {
+    UpdateLimitRequest::targetUsername = targetUsername;
 }
 
 template<class Archive>
@@ -414,3 +417,55 @@ OBJECT_SERIALIZATION(Message)
 OBJECT_SERIALIZATION(ImageBody)
 
 
+const std::string &Echo::getMsg() const {
+    return msg;
+}
+
+void Echo::setMsg(const std::string &msg) {
+    Echo::msg = msg;
+}
+
+template<class Archive>
+void Echo::serialize(Archive &ar, const unsigned int version) {
+    ar & msg;
+}
+
+template<class Archive>
+void Ack::serialize(Archive &ar, const unsigned int version) {
+    ar;
+}
+
+int FeedReply::getCurrentIndex() const {
+    return currentIndex;
+}
+
+void FeedReply::setCurrentIndex(int currentIndex) {
+    FeedReply::currentIndex = currentIndex;
+}
+
+const std::unordered_map<std::string, std::string> &FeedReply::getImages() const {
+    return images;
+}
+
+void FeedReply::setImages(const std::unordered_map<std::string, std::string> &images) {
+    FeedReply::images = images;
+}
+
+template<class Archive>
+void FeedReply::serialize(Archive &ar, const unsigned int version) {
+    ar & currentIndex;
+    ar & images;
+}
+
+const std::string &SearchRequest::getTargetUsername() const {
+    return targetUsername;
+}
+
+void SearchRequest::setTargetUsername(const std::string &targetUsername) {
+    SearchRequest::targetUsername = targetUsername;
+}
+
+template<class Archive>
+void SearchRequest::serialize(Archive &ar, const unsigned int version) {
+    ar & targetUsername;
+}
