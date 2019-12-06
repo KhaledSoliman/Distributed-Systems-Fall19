@@ -5,15 +5,10 @@
 
 
 class Seng {
-
 public:
-    Seng();
+    static void stringToImage(const std::string& imagePath, const std::string& textPath, const std::string& text, const std::string& password);
 
-    ~Seng();
-
-    static void StringToImage(const std::string& imagePath,const std::string& textPath, const std::string& password);
-
-    static std::string ImageToString(const std::string& imagePath,const std::string& password);
+    static std::string imageToString(const std::string& imagePath, const std::string& password);
 };
 
 #endif //PROJ_SENG_H

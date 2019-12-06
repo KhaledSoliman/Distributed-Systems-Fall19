@@ -1,5 +1,6 @@
 #include "../headers/MessageStructures.h"
 #include "../headers/Message.h"
+#include "../headers/ImageBody.h"
 
 using namespace MessageStructures;
 using namespace MessageStructures::Control;
@@ -409,5 +410,7 @@ OBJECT_SERIALIZATION(SearchReply)
 OBJECT_SERIALIZATION(SendMessageRequest)
 
 OBJECT_SERIALIZATION(Message)
+
+OBJECT_SERIALIZATION(ImageBody)
 
 

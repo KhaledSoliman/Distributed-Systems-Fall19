@@ -1,25 +1,24 @@
 #ifndef PROJ_CACHE_H
 #define PROJ_CACHE_H
 
-#include <ctime>
 #include <string>
+#include "ImageBody.h"
 
-class cache {
-private:
-
-    time_t updatedAt;
+class Cache {
 
 public:
 
-    cache();
+    Cache();
 
-    virtual ~cache();
+    virtual ~Cache();
 
-    void InsertImage(std::string img, std::string imgName);
+    void insertImage(const std::string& image, const std::string& imageName, const ImageBody& imageBody);
 
-    void RemoveImage(std::string imgName);
+    void removeImage(const std::string& imageName);
 
-    void UpdateImage();
+    void updateImage(const std::string& imageName, const ImageBody& imageBody);
+
+    void updateCache();
 
 };
 
