@@ -98,8 +98,9 @@ public:
 
     bool verifyFragmentation();
 
-    Message** fragment();
+    bool isFragmented();
 
+    Message** fragment();
 
     ~Message();
 
