@@ -13,12 +13,29 @@ void DirectoryServer::init() {
 
 }
 
-void DirectoryServer::loadDatabase() {
-
+void DirectoryServer::loadDatabase(std::string username, std::string password) {
+    std::string databasePath = "users.txt";
+    std::ofstream out;
+    out.open(databasePath);
+    out << username << password;
+    out.close();
 }
 
-void DirectoryServer::saveDatabase() {
-
+void DirectoryServer::saveDatabase(std::string username, std::string password) {
+    bool here = false;
+    std::string databasePath = "../users.txt";
+    std::ofstream out;
+    out.open(databasePath);
+    out << username << password;
+    for (User user :this->users && User password :this->users) {
+        user.username = username;
+        user.password = password;
+    }
+    out.close();
+    if (!here)
+    users.push_back(username);
+    else
+        cout << "Not valid" << endl;
 }
 
 std::string DirectoryServer::generateAuthToken() {
@@ -34,27 +51,64 @@ void DirectoryServer::handleRequest(Message message) {
 }
 
 SearchReply DirectoryServer::searchUser(SearchRequest req) {
-    return SearchReply();
+    req.getUserName();
+    for (User user :this->users) {
+        user.username = req.getUserName();
+    }
+    SearchReply reply = SearchReply();
+    reply.setFlag(false);
+    return reply;
 }
 
 LoginReply DirectoryServer::loginUser(LoginRequest req) {
-    return LoginReply();
+    req.getUserName();
+    for (User user :this->users) {
+        user.username = req.getUserName();
+    }
+    LoginReply reply = LoginReply();
+           reply.setFlag(false);
+    return reply;
 }
 
 LogoutReply DirectoryServer::logoutUser(LogoutRequest req) {
-    return LogoutReply();
+    req.getUserName();
+    for (User user :this->users) {
+        user.username = req.getUserName();
+    }
+    LogoutReply reply = LogoutReply();
+     reply.setFlag(false);
+    return reply;
 }
 
 RegisterReply DirectoryServer::registerUser(RegisterRequest req) {
-    return RegisterReply();
+    req.getUserName();
+    req.getHashedPassword();
+    for (User user :this->users && User password :this->users) {
+        user.username = req.getUserName();
+        user.password = req.getHashedPassword();
+    }
+    RegisterReply reply = RegisterReply();
+    reply.setFlag(false);
+    return reply;
 }
 
 AddImageReply DirectoryServer::addImage(AddImageRequest req) {
-    return AddImageReply();
+    req.getImageName();
+    for (Image imageName :this->images) {
+        Image.imageName = req.getImageName();
+    }
+    AddImageReply reply = AddImageReply();
+    reply.setFlag(false);
+    return reply;
 }
 
 DeleteImageReply DirectoryServer::delImage(DeleteImageRequest req) {
-    return DeleteImageReply();
+    req.getImageName();
+    for (Image imageName :this->images) {
+        Image.imageName = req.getImageName();
+    }
+    AddImageReply reply = AddImageReply();
+    reply.delete;
 }
 
 FeedReply DirectoryServer::feed(FeedRequest req) {

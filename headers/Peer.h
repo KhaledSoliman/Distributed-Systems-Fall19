@@ -6,7 +6,6 @@
 #include "Server.h"
 #include "MessageStructures.h"
 
-
 using namespace MessageStructures;
 using namespace MessageStructures::Control;
 using namespace MessageStructures::User;
