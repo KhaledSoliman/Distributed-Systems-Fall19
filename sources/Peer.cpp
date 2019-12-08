@@ -1,12 +1,13 @@
 #include "../headers/Peer.h"
 #include "../headers/MessageStructures.h"
 
-Peer::Peer(const std::string &hostname, int port, const std::string& directoryServerHostname, int directoryServerPort) : Server(hostname, port) {
+Peer::Peer(const std::string &hostname, int port, const std::string &directoryServerHostname, int directoryServerPort)
+        : Server(hostname, port) {
     this->directoryServerHostname = directoryServerHostname;
     this->directoryServerPort = directoryServerPort;
 }
 
-void Peer::init(const std::string& username) {
+void Peer::init(const std::string &username) {
     this->username = username;
     while (1) {
         //this->listen();
@@ -20,45 +21,39 @@ Message Peer::handleRequest(Message message) {
         case Message::MessageType::Request:
             switch (message.getOperation()) {
                 case Message::OperationType::ECHO:
-                    this->saveAndGetMessage()
-                    break;
-                case Message::OperationType::ERROR:
-
-                    break;
-                case Message::OperationType::HELLO:
-
+                    this->saveAndGetMessage(load<Echo>(message.getMessage()), Message::MessageType::Reply,
+                                            Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::DOWNLOAD_IMAGE:
-
+                    this->saveAndGetMessage(load<DownloadImageRequest>(message.getMessage()),
+                                            Message::MessageType::Reply, Message::OperationType::DOWNLOAD_IMAGE);
                     break;
                 case Message::OperationType::VIEW_IMAGE:
-                    ViewImageRequest viewImageRequest = load<ViewImageRequest>(message.getMessage());
-                    viewImageRequest.getImageName();
+                    this->saveAndGetMessage(load<AddViewerRequest>(message.getMessage()), Message::MessageType::Reply,
+                                            Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::ADD_VIEWER:
+                    this->saveAndGetMessage(load<AddViewerRequest>(message.getMessage()), Message::MessageType::Reply,
+                                            Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::REMOVE_VIEWER:
-                    RemoveViewerRequest removeViewerRequest = load<RemoveViewerRequest>(message.getMessage());
-                    removeViewerRequest.getToRemove();
+                    this->saveAndGetMessage(load<AddViewerRequest>(message.getMessage()), Message::MessageType::Reply,
+                                            Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::UPDATE_VIEW_LIMIT:
+                    this->saveAndGetMessage(load<AddViewerRequest>(message.getMessage()), Message::MessageType::Reply,
+                                            Message::OperationType::ADD_VIEWER);
                     break;
                 default:
                     break;
             }
-        break;
+            break;
         case Message::MessageType::Reply:
             switch (message.getOperation()) {
                 case Message::OperationType::ECHO:
-                     Echo =
                     break;
                 case Message::OperationType::ACK:
-                    Ack ack = load<Ack>(message.getMessage());
-                    std::cout << ack.msg;
-                    break;
-                case Message::OperationType::ERROR:
-                     Error error = load<Error>(message.getMessage());
-                     std::cout << error.getMsg();
+                    load<Ack>(message.getMessage());
                     break;
                 case Message::OperationType::FEED:
                     break;
@@ -85,13 +80,13 @@ Message Peer::handleRequest(Message message) {
                     UpdateLimitReply.getnewlimit(); //made up
                     break;
             }
-        break;
+            break;
         default:
             break;
     }
 }
 
-UpdateLimitRequest Peer::updateLimit(std::string imageName, std::string username, int newLimit) {
+UpdateLimitRequest Peer::updateLimit(const std::string &imageName, const std::string &username, int newLimit) {
     UpdateLimitRequest request = UpdateLimitRequest();
     request.setUserName(this->username);
     request.setToken(this->token);
@@ -101,23 +96,25 @@ UpdateLimitRequest Peer::updateLimit(std::string imageName, std::string username
     return request;
 }
 
-AddViewerRequest Peer::addViewer(std::string imageName, std::string username) {
+AddViewerRequest Peer::addViewer(const std::string &imageName, const std::string &username) {
     AddViewerRequest request = AddViewerRequest();
-    request.setImageName(this ->imageName);
-    request.setViewerName(this -> username);
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageName(imageName);
+    request.setViewerName(username);
     return request;
 }
 
-RemoveViewerRequest Peer::removeViewer(const std::string& imageName,const std::string& username) {
+RemoveViewerRequest Peer::removeViewer(const std::string &imageName, const std::string &username) {
     RemoveViewerRequest request = RemoveViewerRequest();
-    request.setUserName(this -> username);
+    request.setUserName(this->username);
     request.setToken(this->token);
-    request.setName(imageName);
+    request.setImageName(imageName);
     request.setToRemove(username);
     return request;
 }
 
-SearchRequest Peer::searchUser(std::string username) {
+SearchRequest Peer::searchUser(const std::string &username) {
     SearchRequest request = SearchRequest();
     request.setUserName(this->username);
     request.setToken(this->token);
@@ -135,38 +132,44 @@ LoginRequest Peer::loginUser(const std::string &password) {
 LogoutRequest Peer::logoutUser() {
     LogoutRequest request = LogoutRequest();
     request.setUserName(this->username);
-    request.setToken(token);
+    request.setToken(this->token);
     return request;
 }
 
-RegisterRequest Peer::registerUser(std::string username, std::string password) {
+RegisterRequest Peer::registerUser(const std::string &username, const std::string &password) {
     RegisterRequest request = RegisterRequest();
     request.setUserName(username);
     request.setHashedPassword(password);
     return request;
 }
 
-AddImageRequest Peer::addImage(std::string imageName) {
+AddImageRequest Peer::addImage(const std::string &imageName) {
     AddImageRequest request = AddImageRequest();
-    request.setImageName(imageName);
     request.setUserName(this->username);
     request.setToken(this->token);
+    request.setImageName(imageName);
     request.setThumbnail(this->createThumbnail(imageName));
     return request;
 }
 
-DeleteImageRequest Peer::delImage(std::string imageName) {
+DeleteImageRequest Peer::delImage(const std::string &imageName) {
     DeleteImageRequest request = DeleteImageRequest();
-    request.setImageName(this -> imageName);
-    return DeleteImageRequest();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageName(imageName);
+    return request;
 }
 
-FeedRequest Peer::feed(int imageNum, time_t lastSeenImage) {
+FeedRequest Peer::feed(int imageNum, int lastIndex) {
     FeedRequest request = FeedRequest();
-    request.setToken(this ->lastSeemImage);
-    return FeedRequest();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageNum(imageNum);
+    request.setLastIndex(lastIndex);
+    return request;
 }
 
 std::string Peer::createThumbnail(const std::string &imagePath) {
+    //TODO::
     return std::string();
 }

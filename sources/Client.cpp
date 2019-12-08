@@ -20,12 +20,10 @@ Message *Client::execute(Message *_message) {
     this->udpSocket->writeToSocket(&marshalled[0], marshalled.size());
     char* reply = static_cast<char *>(malloc(MAX_MESSAGE_SIZE));
     this->udpSocket->readSocketWithTimeout(reply, MAX_MESSAGE_SIZE, 5, 5000);
-    return new Message(reply);
+    Message* message = new Message(reply);
+    Message::verifyFragmentation(message);
+    return new ;
 }
-
-Message* Client:: {
-
-};
 
 Client::~Client() {
 }

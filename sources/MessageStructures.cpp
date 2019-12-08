@@ -276,32 +276,23 @@ const std::string &AddViewerRequest::getViewerName() const {
 
 template<class Archive>
 void RemoveViewerRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & token;
-    ar & name;
+    ar & imageName;
     ar & to_remove;
 }
 
-const std::string &RemoveViewerRequest::getToken1() const {
-    return token;
+const std::string &RemoveViewerRequest::getImageName() const {
+    return imageName;
 }
 
-void RemoveViewerRequest::setToken1(const std::string &token) {
-    RemoveViewerRequest::token = token;
+void RemoveViewerRequest::setImageName(const std::string &imageName) {
+    RemoveViewerRequest::imageName = imageName;
 }
 
-const std::string &RemoveViewerRequest::getName() const {
-    return name;
-}
-
-void RemoveViewerRequest::setName(const std::string &name) {
-    this->name = name;
-}
-
-const std::vector<std::string> &RemoveViewerRequest::getToRemove() const {
+const std::string &RemoveViewerRequest::getToRemove() const {
     return to_remove;
 }
 
-void RemoveViewerRequest::setToRemove(const std::vector<std::string> &toRemove) {
+void RemoveViewerRequest::setToRemove(const std::string &toRemove) {
     to_remove = toRemove;
 }
 

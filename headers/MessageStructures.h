@@ -317,9 +317,8 @@ namespace MessageStructures {
 
         struct RemoveViewerRequest : Authentication::AuthRequest {
         private:
-            std::string token;
-            std::string name;
-            std::vector<std::string> to_remove;
+            std::string imageName;
+            std::string to_remove;
 
             friend class boost::serialization::access;
 
@@ -327,17 +326,14 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version);
 
         public:
-            const std::string &getToken1() const;
+            const std::string &getImageName() const;
 
-            void setToken1(const std::string &token);
+            void setImageName(const std::string &imageName);
 
-            const std::string &getName() const;
+            const std::string &getToRemove() const;
 
-            void setName(const std::string &name);
+            void setToRemove(const std::string &toRemove);
 
-            const std::vector<std::string> &getToRemove() const;
-
-            void setToRemove(const std::vector<std::string> &toRemove);
         };
 
         struct RemoveViewerReply : Control::Error {
