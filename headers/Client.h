@@ -20,6 +20,10 @@ public:
 
     Message* receive();
 
+    bool awaitAck();
+
+    void ack(const Message::RPC_ID& rpcId);
+
     ~Client();
 };
 

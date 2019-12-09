@@ -99,7 +99,7 @@ void milestone_1() {
                     //strcpy(message, "flood");
                     Message::RPC_ID rpc = Message::RPC_ID(boost::posix_time::second_clock::local_time(), "1212", 500);
                     std::ifstream input;
-                    input.open("../sources/dragon.jpg");
+                    input.open("../tests/dragon.jpg");
                     std::string image((std::istreambuf_iterator<char>(input)),
                                      std::istreambuf_iterator<char>());
                     input.close();

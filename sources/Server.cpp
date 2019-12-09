@@ -46,23 +46,21 @@ void Server::serveRequest() {
     }
 }
 
-
 bool Server::send(Message *_message) {
     std::string marshalled = _message->marshal();
-    if(Message::verifyFragmentation(marshalled)) {
+    if (Message::verifyFragmentation(marshalled)) {
         std::vector<Message *> msgs = _message->fragment(marshalled);
-        Message* reply;
         int i = 0;
+
         do {
             std::cout << msgs[i]->getMessage().length() << std::endl;
             std::string fragment_marshalled = msgs[i]->marshal();
             this->udpServerSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.size());
-            reply = receive();
-            if(reply->getOperation() == Message::OperationType::ACK) {
-                std::cout << "ACK RECEIVED" << std::endl;
+            bool isAcknowledged = awaitAck();
+            if(isAcknowledged)
                 i++;
-            }
-        } while(i < msgs.size());
+        } while (i < msgs.size());
+
         return true;
     } else {
         this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.size());
@@ -70,29 +68,25 @@ bool Server::send(Message *_message) {
     }
 }
 
-Message* Server::receive() {
+Message *Server::receive() {
     std::map<int, Message *> msgs;
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
     Message *fragment = nullptr;
-    Message* request = nullptr;
+
     do {
         this->udpServerSocket->readFromSocketWithBlock(reply, MAX_READ_MESSAGE_SIZE);
         fragment = new Message(reply);
         msgs[fragment->getRPCId().getFragmentId()] = fragment;
-        if(fragment->getRPCId().isFragmented()) {
+        if (fragment->getRPCId().isFragmented()) {
             std::cout << "Fragment ID: " << fragment->getRPCId().getFragmentId() << std::endl;
             std::cout << "Fragment Size: " << fragment->getMessage().length() << std::endl;
-            Message::RPC_ID rpcId = fragment->getRPCId();
-            Message::RPC_ID rpc = Message::RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
-            rpc.setMessageId(1);
-            request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2, rpc);
-            send(request);
-            std:: cout<< "ACK Transmitted" << std::endl;
+            ack(fragment->getRPCId());
         }
-    } while(fragment->getRPCId().isFragmented() && (msgs.size()*MAX_MESSAGE_SIZE) < fragment->getMessageSize());
-    if(msgs.size() > 1) {
+    } while (fragment->getRPCId().isFragmented() && (msgs.size() * MAX_MESSAGE_SIZE) < fragment->getMessageSize());
+
+    if (msgs.size() > 1) {
         std::string reply;
-        for(auto & msg : msgs) {
+        for (auto &msg : msgs) {
             reply += msg.second->getMessage();
         }
         return new Message(&reply[0]);
@@ -100,6 +94,30 @@ Message* Server::receive() {
         return msgs[0];
     }
 }
+
+bool Server::awaitAck() {
+    char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
+    Message *message = nullptr;
+    this->udpServerSocket->readSocketWithTimeout(reply, MAX_READ_MESSAGE_SIZE, 0, 500);
+    message = new Message(reply);
+    if (strcmp(reply, "Server Timed Out!") == 0) {
+        std::cout << "Server timed out" << std::endl;
+        return false;
+    } else if (message->getOperation() == Message::OperationType::ACK) {
+        std::cout << "ACK RECEIVED" << std::endl;
+        return true;
+    }
+}
+
+void Server::ack(const Message::RPC_ID &rpcId) {
+    Message::RPC_ID rpc = Message::RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
+    rpc.setMessageId(1);
+    auto *request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2, rpc);
+    std::string marshalled = request->marshal();
+    this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.size());
+    std::cout << "ACK Transmitted" << std::endl;
+}
+
 
 Server::~Server() {
 

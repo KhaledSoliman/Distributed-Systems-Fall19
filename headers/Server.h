@@ -41,6 +41,10 @@ public:
 
     void serveRequest();
 
+    bool awaitAck();
+
+    void ack(const Message::RPC_ID& rpcId);
+
     ~Server();
 };
 

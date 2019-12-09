@@ -53,7 +53,7 @@ void Peer::handleRequest(Message message) {
                 case Message::OperationType::ECHO:
                     break;
                 case Message::OperationType::ACK:
-                    load<Ack>(message.getMessage());
+                    load<Echo>(message.getMessage());
                     break;
                 case Message::OperationType::FEED:
                     break;
