@@ -34,7 +34,7 @@ bool Client::send(Message *_message) {
             std::string fragment_marshalled = msgs[i]->marshal();
             this->udpSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.size());
             bool isAcknowledged = awaitAck();
-            if(isAcknowledged)
+            if (isAcknowledged)
                 i++;
         } while (i < msgs.size());
 
@@ -62,11 +62,11 @@ Message *Client::receive() {
     } while (fragment->getRPCId().isFragmented() && (msgs.size() * MAX_MESSAGE_SIZE) < fragment->getMessageSize());
 
     if (msgs.size() > 1) {
-        std::string reply;
+        std::string stringHolder;
         for (auto &msg : msgs) {
-            reply += msg.second->getMessage();
+            stringHolder += msg.second->getMessage();
         }
-        return new Message(&reply[0]);
+        return new Message(&stringHolder[0]);
     } else {
         return msgs[0];
     }
@@ -74,9 +74,8 @@ Message *Client::receive() {
 
 bool Client::awaitAck() {
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
-    Message *message = nullptr;
     this->udpSocket->readSocketWithTimeout(reply, MAX_READ_MESSAGE_SIZE, 0, 500);
-    message = new Message(reply);
+    auto *message = new Message(reply);
     if (strcmp(reply, "Server Timed Out!") == 0) {
         std::cout << "Server timed out" << std::endl;
         return false;
