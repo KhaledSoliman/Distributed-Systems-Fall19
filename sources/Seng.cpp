@@ -23,7 +23,7 @@ std::string Seng::imageToString(const std::string& imagePath, const std::string&
     std::string text((std::istreambuf_iterator<char>(in)),
                     std::istreambuf_iterator<char>());
     remove(textPath.c_str());
-    in.close()
+    in.close();
     return text;
 }
 

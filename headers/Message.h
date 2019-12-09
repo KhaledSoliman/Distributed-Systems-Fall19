@@ -7,7 +7,8 @@
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/serialization/access.hpp>
 
-#define MAX_MESSAGE_SIZE 10240
+#define MAX_MESSAGE_SIZE 4096
+#define MAX_READ_MESSAGE_SIZE 10240
 
 class Message {
 public:
@@ -37,6 +38,16 @@ public:
         boost::posix_time::ptime time;
         std::string address;
         int portNumber;
+        bool fragmented;
+
+        bool isFragmented() const {
+            return fragmented;
+        }
+
+        void setFragmented(bool fragmented) {
+            this->fragmented = fragmented;
+        }
+
         int fragmentId;
         int messageId;
 
@@ -46,6 +57,8 @@ public:
             this->time = time;
             this->address = address;
             this->portNumber = portNumber;
+            fragmentId = 0;
+            fragmented = false;
         }
 
         int getFragmentId() const {
@@ -66,9 +79,10 @@ public:
 
     private:
         friend class boost::serialization::access;
+
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
-            ar & address & portNumber & time;
+            ar & address & portNumber & time & fragmentId & fragmented;
         }
     };
 
@@ -96,11 +110,11 @@ public:
 
     void setMessageType(MessageType message_type);
 
-    bool verifyFragmentation();
+    static bool verifyFragmentation(const std::string &marshalled);
 
-    bool isFragmented();
+    static std::vector<std::string> split(const std::string& str, int splitLength);
 
-    Message** fragment();
+    std::vector<Message *> fragment(std::string &marshalled);
 
     ~Message();
 
@@ -112,10 +126,13 @@ private:
     RPC_ID rpcId;
 
     friend class boost::serialization::access;
+
     template<class Archive>
     void serialize(Archive &ar, const unsigned int /* file_version */) {
         ar & messageType & operation & message & messageSize & rpcId;
     }
+
 };
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
+

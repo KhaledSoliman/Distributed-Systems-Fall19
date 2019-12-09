@@ -16,7 +16,7 @@ void Peer::init(const std::string &username) {
     }
 }
 
-Message Peer::handleRequest(Message message) {
+void Peer::handleRequest(Message message) {
     switch (message.getMessageType()) {
         case Message::MessageType::Request:
             switch (message.getOperation()) {
@@ -25,7 +25,7 @@ Message Peer::handleRequest(Message message) {
                                             Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::DOWNLOAD_IMAGE:
-                    this->saveAndGetMessage(load<DownloadImageRequest>(message.getMessage()),
+                    this->saveAndGetMessage(load<Echo>(message.getMessage()),
                                             Message::MessageType::Reply, Message::OperationType::DOWNLOAD_IMAGE);
                     break;
                 case Message::OperationType::VIEW_IMAGE:
@@ -77,7 +77,6 @@ Message Peer::handleRequest(Message message) {
                     break;
                 case Message::OperationType::UPDATE_VIEW_LIMIT:
                     UpdateLimitReply updateLimitReply = load<UpdateLimitReply>(message.getMessage());
-                    UpdateLimitReply.getnewlimit(); //made up
                     break;
             }
             break;

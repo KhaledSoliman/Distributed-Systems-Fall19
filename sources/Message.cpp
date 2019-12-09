@@ -4,7 +4,8 @@
 #include "../headers/MessageStructures.h"
 #include <boost/beast/core/detail/base64.hpp>
 
-Message::Message(Message::MessageType messageType, Message::OperationType operation, std::string message, size_t messageSize,
+Message::Message(Message::MessageType messageType, Message::OperationType operation, std::string message,
+                 size_t messageSize,
                  Message::RPC_ID rpcId) {
     this->operation = operation;
     this->messageType = messageType;
@@ -13,7 +14,7 @@ Message::Message(Message::MessageType messageType, Message::OperationType operat
     this->rpcId = rpcId;
 }
 
-Message::Message(char* marshalled_base64) {
+Message::Message(char *marshalled_base64) {
     std::string decoded = boost::beast::detail::base64_decode(std::string(marshalled_base64));
     auto msg = load<Message>(decoded);
     *this = msg;
@@ -65,29 +66,41 @@ Message::~Message() {
 Message::Message() {}
 
 
-bool Message::verifyFragmentation() {
-        return (this->message.length()/MAX_MESSAGE_SIZE > 1);
+bool Message::verifyFragmentation(const std::string &marshalled) {
+    return (marshalled.length() / MAX_MESSAGE_SIZE > 1);
 }
 
-Message** Message::fragment() {
-    char* buffer = &this->message[0];
-    int bufferLen = std::strlen(buffer);
-    int factor = bufferLen / MAX_MESSAGE_SIZE;
-    Message* msgs[factor];
-    if (factor > 1) {
-        int fragmentNum = factor;
-        while (fragmentNum > 0) {
-            char *newBuffer = buffer + (factor - fragmentNum) * MAX_MESSAGE_SIZE;
-            RPC_ID rpc = RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
-            rpc.setFragmentId(factor);
-            rpc.setMessageId(1);
-            msgs[(factor - fragmentNum)] = new Message(this->messageType, this->operation, newBuffer, bufferLen, rpc);
-            fragmentNum--;
-        }
+std::vector<std::string> Message::split(const std::string& str, int splitLength)
+{
+    int NumSubstrings = str.length() / splitLength;
+    std::vector<std::string> ret;
+
+    for (auto i = 0; i < NumSubstrings; i++)
+    {
+        ret.push_back(str.substr(i * splitLength, splitLength));
+    }
+
+    // If there are leftover characters, create a shorter item at the end.
+    if (str.length() % splitLength != 0)
+    {
+        ret.push_back(str.substr(splitLength * NumSubstrings));
+    }
+
+
+    return ret;
+}
+
+std::vector<Message *> Message::fragment(std::string &marshalled) {
+    std::vector<Message *> msgs;
+    std::vector<std::string> newBuffers = Message::split(marshalled, MAX_MESSAGE_SIZE);
+    int i = 0;
+    for(const std::string& newBuffer: newBuffers) {
+        RPC_ID rpc = RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
+        rpc.setFragmented(true);
+        rpc.setFragmentId(i);
+        rpc.setMessageId(1);
+        msgs.push_back(new Message(this->messageType, this->operation, newBuffer, marshalled.length(), rpc));
+        i++;
     }
     return msgs;
-}
-
-bool Message::isFragmented() {
-    return this->rpcId.fragmentId != 0;
 }

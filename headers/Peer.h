@@ -24,7 +24,7 @@ public:
 
     std::string createThumbnail(const std::string &imagePath);
 
-    Message handleRequest(Message message);
+    void handleRequest(Message message);
 
     UpdateLimitRequest updateLimit(const std::string &imageName, const std::string &username, int newLimit);
 

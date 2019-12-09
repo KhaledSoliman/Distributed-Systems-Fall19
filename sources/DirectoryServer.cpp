@@ -333,7 +333,7 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
 }
 
 DirectoryServer::~DirectoryServer() {
-    this->saveDatabase();
+    //this->saveDatabase();
 }
 
 void DirectoryServer::listen() {

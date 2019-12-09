@@ -88,9 +88,7 @@ int UDPSocket::readFromSocketWithTimeout(char *buffer, int maxBytes, int timeout
     myAddr.sin_family = AF_INET; /* note that this is needed */
     if ((n = recvfrom(this->sock, buffer, maxBytes, 0,  (struct sockaddr *) &this->myAddr, &aLength)) < 0)
         perror("Receive 1");
-
     return n;
-
 }
 
 int UDPSocket::readFromSocketWithBlock(char *buffer, int maxBytes) {
@@ -127,6 +125,9 @@ int UDPSocket::readSocketWithTimeout(char *buffer, int maxBytes, int timeoutSec,
 }
 
 int UDPSocket::readSocketWithBlock(char *buffer, int maxBytes) {
+    /*int n;
+    socklen_t aLength = sizeof(this->peerAddr);
+    peerAddr.sin_family = AF_INET;*/
     return 0;
 }
 

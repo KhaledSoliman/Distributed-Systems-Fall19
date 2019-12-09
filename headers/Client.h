@@ -16,6 +16,10 @@ public:
 
     Message *execute(Message *_message);
 
+    bool send(Message* _message);
+
+    Message* receive();
+
     ~Client();
 };
 

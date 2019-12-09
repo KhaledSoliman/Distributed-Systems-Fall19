@@ -1,17 +1,10 @@
 #include "../headers/MessageStructures.h"
-#include "../headers/Message.h"
 #include "../headers/ImageBody.h"
 
 using namespace MessageStructures;
 using namespace MessageStructures::Control;
 using namespace MessageStructures::User;
 using namespace MessageStructures::User::Authentication;
-
-template<class Archive>
-void Error::serialize(Archive &ar, const unsigned int version) {
-    ar & flag;
-    ar & msg;
-}
 
 bool Error::isFlag() const {
     return flag;
@@ -29,12 +22,6 @@ void Error::setMsg(const std::string &msg) {
     this->msg = msg;
 }
 
-template<class Archive>
-void realSockAddr::serialize(Archive &ar, const unsigned int version) {
-    ar & this->sa_data;
-    ar & this->sa_family;
-    //ar & this->sa_len;
-}
 
 realSockAddr::realSockAddr() {
 
@@ -50,11 +37,6 @@ realSockAddr::realSockAddr(const sockaddr &s) : sockaddr(s) {
 
 }
 
-template<class Archive>
-void AuthRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & userName;
-    ar & token;
-}
 
 const std::string &AuthRequest::getUserName() const {
     return userName;
@@ -70,12 +52,6 @@ const std::string &AuthRequest::getToken() const {
 
 void AuthRequest::setToken(const std::string &token) {
     this->token = token;
-}
-
-template<class Archive>
-void LoginRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & userName;
-    ar & hashedPassword;
 }
 
 const std::string &LoginRequest::getUserName() const {
@@ -94,23 +70,12 @@ void LoginRequest::setHashedPassword(const std::string &hashedPassword) {
     this->hashedPassword = hashedPassword;
 }
 
-template<class Archive>
-void LoginReply::serialize(Archive &ar, const unsigned int version) {
-    ar & token;
-}
-
 const std::string &LoginReply::getToken() const {
     return token;
 }
 
 void LoginReply::setToken(const std::string &token) {
     this->token = token;
-}
-
-template<class Archive>
-void RegisterRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & user_name;
-    ar & hashed_password;
 }
 
 const std::string &RegisterRequest::getUserName() const {
@@ -130,23 +95,12 @@ void RegisterRequest::setHashedPassword(const std::string &hashedPassword) {
 
 }
 
-template<class Archive>
-void RegisterReply::serialize(Archive &ar, const unsigned int version) {
-    ar & registered;
-}
-
 bool RegisterReply::isRegistered() const {
     return registered;
 }
 
 void RegisterReply::setRegistered(bool registered) {
     this->registered = registered;
-}
-
-template<class Archive>
-void AddImageRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & image_name;
-    ar & thumbnail;
 }
 
 const std::string &AddImageRequest::getImageName() const {
@@ -165,12 +119,6 @@ void AddImageRequest::setThumbnail(const std::string &thumbnail) {
     AddImageRequest::thumbnail = thumbnail;
 }
 
-template<class Archive>
-void ViewImageRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & userName;
-    ar & imageName;
-}
-
 const std::string &ViewImageRequest::getUserName() const {
     return userName;
 }
@@ -187,23 +135,12 @@ void ViewImageRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
-template<class Archive>
-void ViewImageReply::serialize(Archive &ar, const unsigned int version) {
-    ar & image;
-}
-
 const Image &ViewImageReply::getImage() const {
     return image;
 }
 
 void ViewImageReply::setImage(const Image &image) {
     this->image = image;
-}
-
-template<class Archive>
-void DeleteImageRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & userName;
-    ar & imageName;
 }
 
 const std::string &DeleteImageRequest::getUserName1() const {
@@ -222,13 +159,6 @@ void DeleteImageRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
-template<class Archive>
-void AddViewerRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & userName;
-    ar & imageName;
-    ar & viewerName;
-}
-
 int FeedRequest::getImageNum() const {
     return imageNum;
 }
@@ -243,11 +173,6 @@ int FeedRequest::getLastIndex() const {
 
 void FeedRequest::setLastIndex(int lastIndex) {
     FeedRequest::lastIndex = lastIndex;
-}
-
-template<class Archive>
-void FeedRequest::serialize(Archive &ar, const unsigned int version) {
-    ar << imageNum << lastIndex;
 }
 
 const std::string &AddViewerRequest::getUserName1() const {
@@ -274,12 +199,6 @@ const std::string &AddViewerRequest::getViewerName() const {
     return viewerName;
 }
 
-template<class Archive>
-void RemoveViewerRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & imageName;
-    ar & to_remove;
-}
-
 const std::string &RemoveViewerRequest::getImageName() const {
     return imageName;
 }
@@ -294,13 +213,6 @@ const std::string &RemoveViewerRequest::getToRemove() const {
 
 void RemoveViewerRequest::setToRemove(const std::string &toRemove) {
     to_remove = toRemove;
-}
-
-template<class Archive>
-void UpdateLimitRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & targetUsername;
-    ar & name;
-    ar & newLimit;
 }
 
 const std::string &UpdateLimitRequest::getName() const {
@@ -327,16 +239,6 @@ void UpdateLimitRequest::setTargetUsername(const std::string &targetUsername) {
     UpdateLimitRequest::targetUsername = targetUsername;
 }
 
-template<class Archive>
-void SearchReply::serialize(Archive &ar, const unsigned int version) {
-    ar & users_ips;
-}
-
-template<class Archive>
-void SendMessageRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & message;
-}
-
 const std::string &SendMessageRequest::getMessage() const {
     return message;
 }
@@ -345,85 +247,12 @@ void SendMessageRequest::setMessage(const std::string &message) {
     this->message = message;
 }
 
-template<typename T>
-std::string save(const T &t) {
-    std::ostringstream archiveStream;
-    boost::archive::text_oarchive archive(archiveStream, boost::archive::no_header);
-    archive << t;
-    return archiveStream.str();
-}
-
-template<typename T>
-T load(const std::string &message) {
-    T t;
-    std::stringstream archiveStream;
-    archiveStream << message;
-    boost::archive::text_iarchive archive(archiveStream, boost::archive::no_header);
-    archive >> t;
-    return t;
-}
-
-#define OBJECT_SERIALIZATION(T) template std::string save(const T &t); template T load(const std::string &message);
-//Register
-OBJECT_SERIALIZATION(RegisterRequest)
-
-OBJECT_SERIALIZATION(RegisterReply)
-//Login
-OBJECT_SERIALIZATION(LoginRequest)
-
-OBJECT_SERIALIZATION(LoginReply)
-//Logout
-OBJECT_SERIALIZATION(LogoutRequest)
-
-OBJECT_SERIALIZATION(LogoutReply)
-//Add Image
-OBJECT_SERIALIZATION(AddImageRequest)
-
-OBJECT_SERIALIZATION(AddImageReply)
-//Delete Image
-OBJECT_SERIALIZATION(DeleteImageRequest)
-
-OBJECT_SERIALIZATION(DeleteImageReply)
-//Add Viewer
-OBJECT_SERIALIZATION(AddViewerRequest)
-
-OBJECT_SERIALIZATION(AddViewerReply)
-//Remove Viewer
-OBJECT_SERIALIZATION(RemoveViewerRequest)
-
-OBJECT_SERIALIZATION(RemoveViewerReply)
-//Update Limit
-OBJECT_SERIALIZATION(UpdateLimitRequest)
-
-OBJECT_SERIALIZATION(UpdateLimitReply)
-//Search
-OBJECT_SERIALIZATION(SearchRequest)
-
-OBJECT_SERIALIZATION(SearchReply)
-//Search
-OBJECT_SERIALIZATION(SendMessageRequest)
-
-OBJECT_SERIALIZATION(Message)
-
-OBJECT_SERIALIZATION(ImageBody)
-
-
 const std::string &Echo::getMsg() const {
     return msg;
 }
 
 void Echo::setMsg(const std::string &msg) {
     Echo::msg = msg;
-}
-
-template<class Archive>
-void Echo::serialize(Archive &ar, const unsigned int version) {
-    ar & msg;
-}
-
-template<class Archive>
-void Ack::serialize(Archive &ar, const unsigned int version) {
-    ar;
 }
 
 int FeedReply::getCurrentIndex() const {
@@ -442,12 +271,6 @@ void FeedReply::setImages(const std::unordered_map<std::string, std::string> &im
     FeedReply::images = images;
 }
 
-template<class Archive>
-void FeedReply::serialize(Archive &ar, const unsigned int version) {
-    ar & currentIndex;
-    ar & images;
-}
-
 const std::string &SearchRequest::getTargetUsername() const {
     return targetUsername;
 }
@@ -456,7 +279,3 @@ void SearchRequest::setTargetUsername(const std::string &targetUsername) {
     SearchRequest::targetUsername = targetUsername;
 }
 
-template<class Archive>
-void SearchRequest::serialize(Archive &ar, const unsigned int version) {
-    ar & targetUsername;
-}
