@@ -55,7 +55,7 @@ bool Server::send(Message *_message) {
         do {
             std::cout << msgs[i]->getMessage().length() << std::endl;
             std::string fragment_marshalled = msgs[i]->marshal();
-            this->udpServerSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.size());
+            this->udpServerSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.length());
             bool isAcknowledged = awaitAck();
             if (isAcknowledged)
                 i++;
@@ -63,16 +63,15 @@ bool Server::send(Message *_message) {
 
         return true;
     } else {
-        this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.size());
+        this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.length());
         return true;
     }
 }
 
 Message *Server::receive() {
     std::map<int, Message *> msgs;
-    char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
     Message *fragment = nullptr;
-
+    char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
     do {
         this->udpServerSocket->readFromSocketWithBlock(reply, MAX_READ_MESSAGE_SIZE);
         fragment = new Message(reply);
@@ -98,22 +97,26 @@ Message *Server::receive() {
 bool Server::awaitAck() {
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
     this->udpServerSocket->readSocketWithTimeout(reply, MAX_READ_MESSAGE_SIZE, 0, 500);
-    auto *message = new Message(reply);
+    std::cout << std::strlen(reply) << std::endl;
+    std::cout << reply << std::endl;
     if (strcmp(reply, "Server Timed Out!") == 0) {
         std::cout << "Server timed out" << std::endl;
         return false;
-    } else if (message->getOperation() == Message::OperationType::ACK) {
-        std::cout << "ACK RECEIVED" << std::endl;
-        return true;
+    } else {
+        auto* message = new Message(reply);
+        if (message->getOperation() == Message::OperationType::ACK) {
+            std::cout << "ACK RECEIVED" << std::endl;
+            return true;
+        }
     }
 }
 
 void Server::ack(const Message::RPC_ID &rpcId) {
     Message::RPC_ID rpc = Message::RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
     rpc.setMessageId(1);
-    auto *request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2, rpc);
+    auto* request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2, rpc);
     std::string marshalled = request->marshal();
-    this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.size());
+    this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.length());
     std::cout << "ACK Transmitted" << std::endl;
 }
 
