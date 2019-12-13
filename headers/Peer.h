@@ -17,14 +17,32 @@ private:
     int directoryServerPort;
     std::string username;
     std::string token;
+    bool authenticated;
+    bool DoSOnline;
 public:
+    Peer(const std::string &listenHostname, int listenPort);
+
     Peer(const std::string &hostname, int port, const std::string &directoryServerHostname, int directoryServerPort);
 
-    void init(const std::string &username);
+    void init();
 
     std::string createThumbnail(const std::string &imagePath);
 
-    void handleRequest(Message message);
+    void static DoSChecker(Peer& peer);
+
+    void static listen(Peer& peer);
+
+    void static handleRequest(Message* message, Peer& peer);
+
+    void static handleChoice(Peer& peer);
+
+    bool discoverDirectoryService();
+
+    bool connectToDoS();
+
+    bool connectToPeer(const std::string& peerHostname, int peerPort);
+
+    bool pingDoS();
 
     UpdateLimitRequest updateLimit(const std::string &imageName, const std::string &username, int newLimit);
 
@@ -45,6 +63,10 @@ public:
     DeleteImageRequest delImage(const std::string &imageName);
 
     FeedRequest feed(int imageNum, int lastSeenImage);
+
+    bool isDoSOnline() const;
+
+    void setDoSOnline(bool doSOnline);
 };
 
 

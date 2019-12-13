@@ -3,9 +3,13 @@
 
 #include <netinet/in.h>
 
+#define BROADCAST_ADDRESS "255.255.255.255"
+#define BROADCAST_PORT 3001
+
 class UDPSocket {
 protected:
     int sock;
+    int broadcastSock;
     sockaddr_in myAddr;
     sockaddr_in peerAddr;
     char *myAddress;
@@ -21,13 +25,23 @@ public:
 
     char *getFilterAddress();
 
+    bool initializeBroadcastServer(int broadcastPort);
+
+    bool initializeBroadcastClient(char *broadcastIP, unsigned short broadcastPort);
+
     bool initializeServer(char *_myAddr, int _myPort);
 
-    bool initializeClient(char *_peerAddr, int _peerPort);
+    bool initializeClientSocket();
+
+    bool initializeClientPeer(char *_peerAddr, int _peerPort);
+
+    int writeBroadcastToSocket(char *buffer, int maxBytes);
 
     int writeToSocket(char *buffer, int maxBytes);
 
     int writeToSocketAndWait(char *buffer, int maxBytes, int microSec);
+
+    int readSocketBroadcast(char* buffer, int maxBytes);
 
     int readFromSocketWithNoBlock(char *buffer, int maxBytes);
 

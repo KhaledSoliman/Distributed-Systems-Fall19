@@ -4,7 +4,10 @@
 #include <boost/range/adaptor/map.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/thread.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 #define ERROR_AUTH "Failed to authenticate credentials"
 #define USER_NOT_FOUND "User does not exist"
 #define IMAGE_EXISTS "Image already exists"
@@ -29,6 +32,29 @@ DirectoryServer::DirectoryServer(const std::string &hostname, int port, const st
 
 void DirectoryServer::init() {
     this->loadDatabase();
+    boost::thread helloListener(&DirectoryServer::helloListener, *this);
+    while (1) {
+        Message *message = this->receive();
+        boost::thread serverThread(&DirectoryServer::handleRequest, message, *this);
+    }
+}
+
+void DirectoryServer::listen() {
+
+}
+
+void DirectoryServer::helloListener(DirectoryServer &directoryServer) {
+    directoryServer.Server::initBroadcast(BROADCAST_PORT);
+    
+    while (true) {
+        Message *message = directoryServer.listenToBroadcasts();
+        auto hello = load<Hello>(message->getMessage());
+        if (hello.getMessage() == "DoS")
+            hello.setMessage("ME");
+        Message *reply = directoryServer.Server::saveAndGetMessage(hello, Message::MessageType::Reply,
+                                                                   Message::OperationType::HELLO);
+        directoryServer.Server::send(reply);
+    }
 }
 
 void DirectoryServer::loadDatabase() {
@@ -94,53 +120,63 @@ bool DirectoryServer::authenticate(const std::string &username, const std::strin
     return this->userExists(username) && this->users[username].getPassword() == hashedPassword;
 }
 
-void DirectoryServer::handleRequest(Message message) {
-    switch (message.getMessageType()) {
+void DirectoryServer::handleRequest(Message* message, DirectoryServer &directoryServer) {
+    switch (message->getMessageType()) {
         case Message::MessageType::Request:
             Message *reply;
-            switch (message.getOperation()) {
+            switch (message->getOperation()) {
                 case Message::OperationType::REGISTER:
-                    reply = this->saveAndGetMessage(this->registerUser(load<RegisterRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::REGISTER);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.registerUser(load<RegisterRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::REGISTER);
                     break;
                 case Message::OperationType::LOGIN:
-                    reply = this->saveAndGetMessage(this->loginUser(load<LoginRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::LOGIN);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.loginUser(load<LoginRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::LOGIN);
                     break;
                 case Message::OperationType::LOGOUT:
-                    reply = this->saveAndGetMessage(this->logoutUser(load<LogoutRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::LOGOUT);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.logoutUser(load<LogoutRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::LOGOUT);
                     break;
                 case Message::OperationType::FEED:
-                    reply = this->saveAndGetMessage(this->feed(load<FeedRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::FEED);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.feed(load<FeedRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::FEED);
                     break;
                 case Message::OperationType::SEARCH:
-                    reply = this->saveAndGetMessage(this->searchUser(load<SearchRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::SEARCH);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.searchUser(load<SearchRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::SEARCH);
                     break;
                 case Message::OperationType::ADD_IMAGE:
-                    reply = this->saveAndGetMessage(this->addImage(load<AddImageRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::ADD_IMAGE);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.addImage(load<AddImageRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::ADD_IMAGE);
                     break;
                 case Message::OperationType::DELETE_IMAGE:
-                    reply = this->saveAndGetMessage(this->delImage(load<DeleteImageRequest>(message.getMessage())),
-                                                    Message::MessageType::Reply, Message::OperationType::DELETE_IMAGE);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.delImage(load<DeleteImageRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::DELETE_IMAGE);
                     break;
                 case Message::OperationType::ECHO:
-                    reply = this->saveAndGetMessage(load<Echo>(message.getMessage()), Message::MessageType::Reply,
-                                                    Message::OperationType::ECHO);
+                    reply = directoryServer.Server::saveAndGetMessage(load<Echo>(message->getMessage()),
+                                                              Message::MessageType::Reply,
+                                                              Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::HELLO:
-                    reply = this->saveAndGetMessage(this->handleHello(load<Hello>(message.getMessage())),Message::MessageType::Reply, Message::OperationType::HELLO);
+                    reply = directoryServer.Server::saveAndGetMessage(
+                            directoryServer.handleHello(load<Hello>(message->getMessage())), Message::MessageType::Reply,
+                            Message::OperationType::HELLO);
                     break;
                 default:
                     break;
             }
-            this->sendReply(reply);
+            directoryServer.sendReply(reply);
             break;
         case Message::MessageType::Reply:
-            switch (message.getOperation()) {
+            switch (message->getOperation()) {
                 case Message::OperationType::ACK:
                     break;
                 default:
@@ -153,21 +189,6 @@ void DirectoryServer::handleRequest(Message message) {
 }
 
 Ack DirectoryServer::handleHello(Hello req) {
-    Ack reply = Ack();
-    const std::string &username = req.getUserName();
-    const std::string &token = req.getToken();
-    if (this->userExists(username)) {
-        if (this->authorize(username, token)) {
-            reply.setFlag(false);
-
-        } else {
-            reply.setFlag(true);
-            reply.setMsg(ERROR_AUTH);
-        }
-    } else {
-        reply.setFlag(true);
-        reply.setMsg(USER_NOT_FOUND);
-    }
     return Ack();
 }
 
@@ -336,13 +357,6 @@ DirectoryServer::~DirectoryServer() {
     //this->saveDatabase();
 }
 
-void DirectoryServer::listen() {
-    while (true) {
-        Message *message = this->getRequest();
-        this->handleRequest(*message);
-    }
-}
-
 const std::string &DirectoryServer::User::getUsername() const {
     return username;
 }
@@ -414,3 +428,5 @@ void DirectoryServer::User::addImage(const std::string &imageName) {
 bool DirectoryServer::User::imageExists(const std::string &imageName) {
     return std::find(this->images.begin(), this->images.end(), imageName) != this->images.end();
 }
+
+#pragma clang diagnostic pop

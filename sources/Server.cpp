@@ -14,8 +14,8 @@ Server::Server(const std::string &_listen_hostname, int _listen_port) {
     this->port = _listen_port;
 }
 
-bool Server::listen(const std::string &_listen_hostname, int _listen_port) {
-    return this->udpServerSocket->initializeServer(_listen_hostname, _listen_port);
+bool Server::initBroadcast(int _broadcastPort) {
+    return this->udpServerSocket->initializeBroadcastServer(_broadcastPort);
 }
 
 void Server::sendReply(Message *_message) {
@@ -68,10 +68,18 @@ bool Server::send(Message *_message) {
     }
 }
 
+Message *Server::listenToBroadcasts() {
+    char *broadcast = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
+    this->udpServerSocket->readSocketBroadcast(broadcast, MAX_READ_MESSAGE_SIZE);
+    return new Message(broadcast);
+}
+
 Message *Server::receive() {
     std::map<int, Message *> msgs;
     Message *fragment = nullptr;
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
+
+
     do {
         this->udpServerSocket->readFromSocketWithBlock(reply, MAX_READ_MESSAGE_SIZE);
         fragment = new Message(reply);
@@ -103,7 +111,7 @@ bool Server::awaitAck() {
         std::cout << "Server timed out" << std::endl;
         return false;
     } else {
-        auto* message = new Message(reply);
+        auto *message = new Message(reply);
         if (message->getOperation() == Message::OperationType::ACK) {
             std::cout << "ACK RECEIVED" << std::endl;
             return true;
@@ -112,14 +120,16 @@ bool Server::awaitAck() {
 }
 
 void Server::ack(const Message::RPC_ID &rpcId) {
-    Message::RPC_ID rpc = Message::RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
-    rpc.setMessageId(1);
-    auto* request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2, rpc);
+    auto *request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2,
+                                *this->constructRPC());
     std::string marshalled = request->marshal();
     this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.length());
     std::cout << "ACK Transmitted" << std::endl;
 }
 
+Message::RPC_ID *Server::constructRPC() {
+    return new Message::RPC_ID(this->hostname, this->port);
+}
 
 Server::~Server() {
 

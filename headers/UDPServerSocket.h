@@ -10,6 +10,8 @@ public:
 
     bool initializeServer(std::string _myAddr, int _myPort);
 
+    bool initializeBroadCastServer(int _broadcastPort);
+
     ~UDPServerSocket();
 };
 

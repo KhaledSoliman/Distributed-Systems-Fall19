@@ -10,6 +10,8 @@ public:
 
     bool initializeClient(std::string _peerAddr, int _peerPort);
 
+    bool initializeBroadcastClient(std::string _peerAddr, int _peerPort);
+
     ~UDPClientSocket();
 };
 

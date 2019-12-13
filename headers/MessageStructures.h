@@ -53,7 +53,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & this->sa_data;
                 ar & this->sa_family;
                 //ar & this->sa_len;
@@ -71,9 +71,10 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar;
             }
+
         public:
 
         };
@@ -85,7 +86,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & msg;
             }
 
@@ -106,7 +107,7 @@ namespace MessageStructures {
                 std::string token;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version){
+                void serialize(Archive &ar, const unsigned int version) {
                     ar & userName;
                     ar & token;
                 }
@@ -129,7 +130,7 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version){
+                void serialize(Archive &ar, const unsigned int version) {
                     ar & userName;
                     ar & hashedPassword;
                 }
@@ -151,7 +152,7 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version){
+                void serialize(Archive &ar, const unsigned int version) {
                     ar & token;
                 }
 
@@ -180,7 +181,7 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version){
+                void serialize(Archive &ar, const unsigned int version) {
                     ar & user_name;
                     ar & hashed_password;
                 }
@@ -202,7 +203,7 @@ namespace MessageStructures {
                 friend class boost::serialization::access;
 
                 template<class Archive>
-                void serialize(Archive &ar, const unsigned int version){
+                void serialize(Archive &ar, const unsigned int version) {
                     ar & registered;
                 }
 
@@ -219,9 +220,25 @@ namespace MessageStructures {
         };
 
 
-        struct Hello : public Authentication::AuthRequest {
+        struct Hello {
         private:
+            std::string message;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & message;
+            }
+
         public:
+            const std::string &getMessage() const {
+                return message;
+            }
+
+            void setMessage(const std::string &message) {
+                Hello::message = message;
+            }
         };
 
         //Add image
@@ -263,7 +280,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & userName;
                 ar & imageName;
             }
@@ -285,7 +302,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & image;
             }
 
@@ -304,7 +321,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & userName;
                 ar & imageName;
             }
@@ -334,7 +351,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & userName;
                 ar & imageName;
                 ar & viewerName;
@@ -399,7 +416,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & targetUsername;
                 ar & name;
                 ar & newLimit;
@@ -432,7 +449,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & imageNum & lastIndex;
             }
 
@@ -455,7 +472,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & currentIndex;
                 ar & images;
             }
@@ -469,6 +486,7 @@ namespace MessageStructures {
 
             void setImages(const std::unordered_map<std::string, std::string> &images);
         };
+
         // Get all messages
         struct SearchRequest : public Authentication::AuthRequest {
         private:
@@ -477,7 +495,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & targetUsername;
             }
 
@@ -495,7 +513,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & users_ips;
             }
 
@@ -508,7 +526,7 @@ namespace MessageStructures {
             friend class boost::serialization::access;
 
             template<class Archive>
-            void serialize(Archive &ar, const unsigned int version){
+            void serialize(Archive &ar, const unsigned int version) {
                 ar & message;
             }
 
@@ -545,6 +563,12 @@ using namespace MessageStructures::User;
 using namespace MessageStructures::User::Authentication;
 
 #define OBJECT_SERIALIZATION(T) template std::string save(const T &t); template T load(const std::string &message);
+//Echo ICMP
+OBJECT_SERIALIZATION(Echo)
+
+//Directory Service Hello
+OBJECT_SERIALIZATION(Hello)
+
 //Register
 OBJECT_SERIALIZATION(RegisterRequest)
 

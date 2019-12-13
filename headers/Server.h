@@ -24,26 +24,28 @@ public:
 
     Server(const std::string &_listen_hostname, int _listen_port);
 
-    bool listen(const std::string &_listen_hostname, int _listen_port);
+    bool initBroadcast(int _broadcastPort);
 
     bool send(Message *_message);
 
+    Message *listenToBroadcasts();
+
     Message *receive();
+
+    Message::RPC_ID *constructRPC();
 
     template<typename T>
     Message *
     saveAndGetMessage(const T &messageStructure, Message::MessageType messageType, Message::OperationType operation) {
         std::string serialized = save<T>(messageStructure);
-        Message::RPC_ID rpc = Message::RPC_ID(boost::posix_time::second_clock::local_time(), this->hostname,
-                                              this->port);
-        return new Message(messageType, operation, serialized, serialized.length(), rpc);
+        return new Message(messageType, operation, serialized, serialized.length(), *(this->constructRPC()));
     }
 
     void serveRequest();
 
     bool awaitAck();
 
-    void ack(const Message::RPC_ID& rpcId);
+    void ack(const Message::RPC_ID &rpcId);
 
     ~Server();
 };

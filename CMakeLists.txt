@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 #set(Boost_INCLUDE_DIR /home/khaled/Desktop/boost_1_70_0)
 #set(Boost_LIBRARY_DIR /home/khaled/Desktop/boost_1_70_0/stage/lib)
-find_package(Boost 1.66 REQUIRED COMPONENTS system random filesystem date_time iostreams serialization )
+find_package(Boost 1.66 REQUIRED COMPONENTS thread system random filesystem date_time iostreams serialization )
 include_directories(${Boost_INCLUDE_DIR})
 add_executable(Proj
         headers/Client.h
@@ -25,8 +25,6 @@ add_executable(Proj
         headers/MessageStructures.h
         sources/DirectoryServer.cpp
         headers/DirectoryServer.h
-        sources/DirectoryService.cpp
-        headers/DirectoryService.h
         sources/Peer.cpp
         headers/Peer.h
         headers/Seng.h

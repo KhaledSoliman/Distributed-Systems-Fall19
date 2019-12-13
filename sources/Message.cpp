@@ -95,7 +95,7 @@ std::vector<Message *> Message::fragment(std::string &marshalled) {
     std::vector<std::string> newBuffers = Message::split(marshalled, MAX_MESSAGE_SIZE);
     int i = 0;
     for(const std::string& newBuffer: newBuffers) {
-        RPC_ID rpc = RPC_ID(rpcId.time, rpcId.address, rpcId.portNumber);
+        RPC_ID rpc = RPC_ID(rpcId.address, rpcId.portNumber);
         rpc.setFragmented(true);
         rpc.setFragmentId(i);
         rpc.setMessageId(1);
@@ -104,3 +104,5 @@ std::vector<Message *> Message::fragment(std::string &marshalled) {
     }
     return msgs;
 }
+
+int Message::RPC_ID::currentMessageId = 0;

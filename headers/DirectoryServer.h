@@ -8,6 +8,7 @@
 #include "MessageStructures.h"
 #include "Message.h"
 #include "Server.h"
+#include "Client.h"
 
 #define TIMEOUT 30000
 #define INTERVAL 1000
@@ -22,7 +23,7 @@ using namespace MessageStructures::Control;
 using namespace MessageStructures::User;
 using namespace MessageStructures::User::Authentication;
 
-class DirectoryServer : Server {
+class DirectoryServer : Server, Client {
 private:
     struct Image {
         std::string image;
@@ -92,6 +93,8 @@ public:
 
     void init();
 
+    static void helloListener(DirectoryServer& directoryServer);
+
     void listen();
 
     void loadDatabase();
@@ -108,7 +111,7 @@ public:
 
     bool authenticate(const std::string &username, const std::string &hashedPassword);
 
-    void handleRequest(Message message);
+    static void handleRequest(Message* message, DirectoryServer& directoryServer);
 
     SearchReply searchUser(const SearchRequest& req);
 

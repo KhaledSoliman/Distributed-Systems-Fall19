@@ -9,6 +9,7 @@
 
 #define MAX_MESSAGE_SIZE 4096
 #define MAX_READ_MESSAGE_SIZE 10240
+#define USER_MESSAGE_MAX_SIZE 10000000
 
 class Message {
 public:
@@ -16,6 +17,7 @@ public:
         Request = 0,
         Reply = 1
     };
+
     enum OperationType {
         ECHO,
         ACK,
@@ -35,10 +37,65 @@ public:
     };
 
     struct RPC_ID {
+        static int currentMessageId;
+        int messageId;
         boost::posix_time::ptime time;
+        bool fragmented;
+        int fragmentId;
         std::string address;
         int portNumber;
-        bool fragmented;
+
+        RPC_ID() {
+            this->messageId = RPC_ID::incrementMessageId();
+            this->fragmentId = 0;
+            this->fragmented = false;
+            this->time = boost::posix_time::second_clock::local_time();
+        }
+
+        RPC_ID(const std::string& address, int portNumber) {
+            this->address = address;
+            this->portNumber = portNumber;
+            this->messageId = RPC_ID::incrementMessageId();
+            this->fragmentId = 0;
+            this->fragmented = false;
+            this->time = boost::posix_time::second_clock::local_time();
+        }
+
+        const boost::posix_time::ptime &getTime() const {
+            return time;
+        }
+
+        void setTime(const boost::posix_time::ptime &time) {
+            this->time = time;
+        }
+
+        const std::string &getAddress() const {
+            return address;
+        }
+
+        void setAddress(const std::string &address) {
+            this->address = address;
+        }
+
+        int getPortNumber() const {
+            return portNumber;
+        }
+
+        void setPortNumber(int portNumber) {
+            this->portNumber = portNumber;
+        }
+
+        static int getCurrentMessageId() {
+            return currentMessageId;
+        }
+
+        static void setCurrentMessageId(int currentMessageId) {
+            RPC_ID::currentMessageId = currentMessageId;
+        }
+
+        int static incrementMessageId() {
+            return RPC_ID::currentMessageId++;
+        }
 
         bool isFragmented() const {
             return fragmented;
@@ -48,25 +105,12 @@ public:
             this->fragmented = fragmented;
         }
 
-        int fragmentId;
-        int messageId;
-
-        RPC_ID() {}
-
-        RPC_ID(boost::posix_time::ptime time, std::string address, int portNumber) {
-            this->time = time;
-            this->address = address;
-            this->portNumber = portNumber;
-            fragmentId = 0;
-            fragmented = false;
-        }
-
         int getFragmentId() const {
             return fragmentId;
         }
 
         void setFragmentId(int fragmentId) {
-            RPC_ID::fragmentId = fragmentId;
+            this->fragmentId = fragmentId;
         }
 
         int getMessageId() const {
@@ -74,7 +118,7 @@ public:
         }
 
         void setMessageId(int messageId) {
-            RPC_ID::messageId = messageId;
+            this->messageId = messageId;
         }
 
     private:
@@ -82,15 +126,16 @@ public:
 
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
-            ar & address & portNumber & time & fragmentId & fragmented;
+            ar & messageId & address & portNumber & time & fragmentId & fragmented;
         }
     };
+
 
     Message(MessageType messageType, OperationType operation, std::string message, size_t messageSize, RPC_ID rpcId);
 
     Message();
 
-    Message(char *marshalled_base64);
+    explicit Message(char *marshalled_base64);
 
     std::string marshal();
 
@@ -112,7 +157,7 @@ public:
 
     static bool verifyFragmentation(const std::string &marshalled);
 
-    static std::vector<std::string> split(const std::string& str, int splitLength);
+    static std::vector<std::string> split(const std::string &str, int splitLength);
 
     std::vector<Message *> fragment(std::string &marshalled);
 
@@ -133,6 +178,7 @@ private:
     }
 
 };
+
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
 
