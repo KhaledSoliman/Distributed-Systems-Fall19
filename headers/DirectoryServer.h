@@ -95,7 +95,7 @@ public:
 
     static void helloListener(DirectoryServer& directoryServer);
 
-    void listen();
+    void static listen(DirectoryServer& directoryServer);
 
     void loadDatabase();
 

@@ -18,7 +18,7 @@ Peer::Peer(const std::string &listenHostname, int listenPort) : Server(listenHos
 }
 
 bool Peer::connectToDoS() {
-    this->connectToServer(directoryServerHostname, directoryServerPort);
+    this->connectToServer(this->directoryServerHostname, this->directoryServerPort);
 }
 
 bool Peer::connectToPeer(const std::string& peerHostname, int peerPort) {
@@ -47,28 +47,28 @@ bool Peer::discoverDirectoryService() {
     return false;
 }
 
-void Peer::DoSChecker(Peer &peer) {
+void Peer::DoSChecker(boost::shared_ptr<Peer> peer) {
     while(true) {
-        while(!peer.discoverDirectoryService()) {
+        while(!peer->discoverDirectoryService()) {
             std::cout << "Discovering DoS..." << std::endl;
             boost::this_thread::sleep(boost::posix_time::milliseconds(750));
         }
         int pingMissCounter = 0;
+        peer->threadTest = "Hello client thread";
         while(pingMissCounter < 3) {
-            if(!peer.pingDoS()) {
-                peer.setDoSOnline(false);
+            if(!peer->pingDoS()) {
+                peer->setDoSOnline(false);
                 pingMissCounter +=  1;
                 std::cout << "DoS went offline please hold while we try to connect again..." << std::endl;
             } else {
-                peer.setDoSOnline(true);
+                peer->setDoSOnline(true);
             }
-            boost::this_thread::sleep(boost::posix_time::milliseconds(2500));
+            boost::this_thread::sleep(boost::posix_time::milliseconds(22500));
         }
     }
 }
 
 bool Peer::pingDoS() {
-    std::cout << "Pinging directory of server..." << std::endl;
     Echo echo = Echo();
     echo.setMsg("PING");
     this->connectToDoS();
@@ -85,48 +85,50 @@ bool Peer::pingDoS() {
 }
 
 void Peer::init() {
-    boost::thread DoSThread(&Peer::DoSChecker, *this);
-    boost::thread serverThread(&Peer::listen, *this);
-    boost::thread clientThread(&Peer::handleChoice, *this);
+    boost::thread DoSThread(&Peer::DoSChecker,  boost::shared_ptr<Peer> (this));
+    boost::thread serverThread(&Peer::listen,  boost::shared_ptr<Peer> (this));
+   // boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+    boost::thread clientThread(&Peer::handleChoice, boost::shared_ptr<Peer> (this));
+    while(true);
 }
 
 
-void  Peer::listen(Peer &peer) {
+void  Peer::listen(boost::shared_ptr<Peer> peer) {
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true) {
-        Message* message = peer.Server::receive();
+        Message* message = peer->Server::receive();
         boost::thread handleRequest(&Peer::handleRequest, message, peer);
     }
     #pragma clang diagnostic pop
 }
 
-void Peer::handleRequest(Message* message, Peer& peer) {
+void Peer::handleRequest(Message* message, boost::shared_ptr<Peer> peer) {
     switch (message->getMessageType()) {
         case Message::MessageType::Request:
             switch (message->getOperation()) {
                 case Message::OperationType::ECHO:
-                    peer.Server::saveAndGetMessage(load<Echo>(message->getMessage()), Message::MessageType::Reply,
+                    peer->Server::saveAndGetMessage(load<Echo>(message->getMessage()), Message::MessageType::Reply,
                                             Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::DOWNLOAD_IMAGE:
-                    peer.Server::saveAndGetMessage(load<Echo>(message->getMessage()),
+                    peer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
                                             Message::MessageType::Reply, Message::OperationType::DOWNLOAD_IMAGE);
                     break;
                 case Message::OperationType::VIEW_IMAGE:
-                    peer.Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
+                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
                                             Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::ADD_VIEWER:
-                    peer.Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
+                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
                                             Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::REMOVE_VIEWER:
-                    peer.Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
+                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
                                             Message::OperationType::ADD_VIEWER);
                     break;
                 case Message::OperationType::UPDATE_VIEW_LIMIT:
-                    peer.Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
+                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()), Message::MessageType::Reply,
                                             Message::OperationType::ADD_VIEWER);
                     break;
                 default:
@@ -170,9 +172,8 @@ void Peer::handleRequest(Message* message, Peer& peer) {
     }
 }
 
-void Peer::handleChoice(Peer& peer) {
+void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
     int peerChoice;
-    bool incorrectChoice;
     enum peerChoices {
         Register = 1,
         Login,
@@ -185,13 +186,12 @@ void Peer::handleChoice(Peer& peer) {
         GetRequests
     };
     do {
-        incorrectChoice = false;
-        std::cin >> peerChoice;
-        if(!peer.authenticated) {
+        if(!peer->authenticated) {
             std::cout << "Please choose what you want to do as a peer?" << std::endl
                       << "List of choices:" << std::endl
                       << "1) Register with directory server." << std::endl
                       << "2) Already have an account then login with directory server." << std::endl;
+            std::cin >> peerChoice;
             std::string username, password, confirmPassword;
             switch(peerChoice) {
                 case peerChoices::Register:
@@ -201,47 +201,58 @@ void Peer::handleChoice(Peer& peer) {
                     std::cin >> password;
                     std::cout << "Please confirm your password" << std::endl;
                     std::cin >> confirmPassword;
-                    if(confirmPassword == password)
-                        peer.registerUser(username, password);
-                    else
-                    std::cout << "Passwords do not match" << std::endl;
+                    if(confirmPassword == password) {
+                        Message* message = peer->Client::saveAndGetMessage(peer->registerUser(username, password), Message::MessageType::Request, Message::OperationType::REGISTER) ;
+                        std::cout << peer->isDoSOnline() << std::endl; std::cout << peer->threadTest << std::endl;
+                        peer->connectToDoS();
+                        if(peer->Client::send(message)) {
+                             Message* reply = peer->Client::receiveWithTimeout();
+                             if(reply == nullptr) {
+                                 std::cout << "DoS didn't respond" << std::endl;
+                             } else {
+                                 auto registerReply = load<RegisterReply>(reply->getMessage());
+                                 std::cout << "Register Reply: " << registerReply.getMsg() << std::endl;
+                             }
+                        }
+                    } else {
+                        std::cout << "Passwords do not match" << std::endl;
+                    }
                     break;
                 case peerChoices::Login:
                     std::cout << "Please input your username" << std::endl;
                     std::cin >> username;
                     std::cout << "Please input your password" << std::endl;
                     std::cin >> password;
-                    peer.init();
-                    peer.loginUser(password);
-
+                    peer->init();
+                    peer->loginUser(password);
                     break;
                 default:
                     std::cout << "Choice unknown" << std::endl;
-                    incorrectChoice = true;
             }
         } else {
             std::cout << "1) Logout from directory server." << std::endl
                       << "2) Request feed from directory server." << std::endl
                       << "3) Add image to directory server." << std::endl
                       << "4) Search username in directory server." << std::endl
-                      << "5) Request to view image from peer." << std::endl
-                      << "6) Download image from peer." << std::endl
+                      << "5) Request to view image from peer->" << std::endl
+                      << "6) Download image from peer->" << std::endl
                       << "7) Show my requests." << std::endl;
+            std::cin >> peerChoice;
             std::string targetUsername;
             switch(peerChoice) {
                 case peerChoices::Logout:
-                    peer.logoutUser();
+                    peer->logoutUser();
                     break;
                 case peerChoices::Feed:
-                    peer.feed(0,20);
+                    peer->feed(0,20);
                     break;
                 case peerChoices::AddImage:
-                    peer.addImage("MEOW");
+                    peer->addImage("MEOW");
                     break;
                 case peerChoices::GetRequests:
                     break;
                 case peerChoices::Search:
-                    peer.searchUser(targetUsername);
+                    peer->searchUser(targetUsername);
                     break;
                 case peerChoices::RequestView:
                     break;
@@ -249,10 +260,9 @@ void Peer::handleChoice(Peer& peer) {
                     break;
                 default:
                     std::cout << "Choice unknown" << std::endl;
-                    incorrectChoice = true;
             }
         }
-    } while(incorrectChoice);
+    } while(true);
 }
 
 UpdateLimitRequest Peer::updateLimit(const std::string &imageName, const std::string &username, int newLimit) {
@@ -351,6 +361,21 @@ void Peer::setDoSOnline(bool doSOnline) {
     DoSOnline = doSOnline;
 }
 
+const std::string &Peer::getDirectoryServerHostname() const {
+    return directoryServerHostname;
+}
+
+void Peer::setDirectoryServerHostname(const std::string &directoryServerHostname) {
+    Peer::directoryServerHostname = directoryServerHostname;
+}
+
+int Peer::getDirectoryServerPort() const {
+    return directoryServerPort;
+}
+
+void Peer::setDirectoryServerPort(int directoryServerPort) {
+    Peer::directoryServerPort = directoryServerPort;
+}
 
 
 #pragma clang diagnostic pop

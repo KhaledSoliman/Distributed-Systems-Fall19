@@ -33,14 +33,16 @@ DirectoryServer::DirectoryServer(const std::string &hostname, int port, const st
 void DirectoryServer::init() {
     this->loadDatabase();
     boost::thread helloListener(&DirectoryServer::helloListener, *this);
-    while (1) {
-        Message *message = this->receive();
-        boost::thread serverThread(&DirectoryServer::handleRequest, message, *this);
-    }
+    boost::thread serverListener(&DirectoryServer::listen, *this);
+    while(true);
 }
 
-void DirectoryServer::listen() {
-
+void DirectoryServer::listen(DirectoryServer& directoryServer) {
+    while (true) {
+        Message *message = directoryServer.Server::receive();
+        std::cout << "Recieved: " << message->getOperation() << std::endl;
+        boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
+    }
 }
 
 void DirectoryServer::helloListener(DirectoryServer &directoryServer) {
@@ -354,7 +356,7 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
 }
 
 DirectoryServer::~DirectoryServer() {
-    //this->saveDatabase();
+    this->saveDatabase();
 }
 
 const std::string &DirectoryServer::User::getUsername() const {
