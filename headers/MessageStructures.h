@@ -153,6 +153,7 @@ namespace MessageStructures {
 
                 template<class Archive>
                 void serialize(Archive &ar, const unsigned int version) {
+                    ar & boost::serialization::base_object<Control::Error>(*this);
                     ar & token;
                 }
 
@@ -251,6 +252,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & image_name;
                 ar & thumbnail;
             }
@@ -322,6 +324,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & userName;
                 ar & imageName;
             }
@@ -485,6 +488,36 @@ namespace MessageStructures {
             const std::unordered_map<std::string, std::string> &getImages() const;
 
             void setImages(const std::unordered_map<std::string, std::string> &images);
+        };
+
+        struct GetRequestsReply : public Authentication::AuthRequest {
+        private:
+            std::vector<ViewImageRequest> requests;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & requests;
+            }
+        public:
+            const std::vector<ViewImageRequest> &getRequests() const {
+                return requests;
+            }
+
+            void setRequests(const std::vector<ViewImageRequest> &requests) {
+                GetRequestsReply::requests = requests;
+            }
+        };
+
+        struct GetRequests : public Authentication::AuthRequest {
+        private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar;
+            }
         };
 
         // Get all messages

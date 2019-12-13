@@ -18,6 +18,7 @@ DirectoryServer::DirectoryServer(const std::string &hostname) : Server(hostname,
     this->port = DEFAULT_LISTEN_PORT;
     this->databasePath = DATABASE_DIR;
     this->directoryFile = DIRECTORY_FILE;
+    this->usersFile = USER_FILE;
 }
 
 DirectoryServer::DirectoryServer(const std::string &hostname, int port, const std::string &databasePath,
@@ -32,51 +33,65 @@ DirectoryServer::DirectoryServer(const std::string &hostname, int port, const st
 
 void DirectoryServer::init() {
     this->loadDatabase();
-    boost::thread helloListener(&DirectoryServer::helloListener, *this);
-    boost::thread serverListener(&DirectoryServer::listen, *this);
+    boost::thread helloListener(&DirectoryServer::helloListener, boost::shared_ptr<DirectoryServer> (this));
+    boost::thread serverListener(&DirectoryServer::listen, boost::shared_ptr<DirectoryServer> (this));
+    boost::thread databasePersist(&DirectoryServer::databasePersistence, boost::shared_ptr<DirectoryServer> (this));
     while(true);
 }
 
-void DirectoryServer::listen(DirectoryServer& directoryServer) {
+void DirectoryServer::databasePersistence(boost::shared_ptr<DirectoryServer> directoryServer) {
+    for(;;) {
+        std::cout << "saving databases..." << std::endl;
+        directoryServer->saveDatabase();
+        boost::this_thread::sleep(boost::posix_time::minutes(1));
+    }
+}
+
+void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer) {
     while (true) {
-        Message *message = directoryServer.Server::receive();
+        Message *message = directoryServer->Server::receive();
         std::cout << "Recieved: " << message->getOperation() << std::endl;
         boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
     }
 }
 
-void DirectoryServer::helloListener(DirectoryServer &directoryServer) {
-    directoryServer.Server::initBroadcast(BROADCAST_PORT);
+void DirectoryServer::helloListener(boost::shared_ptr<DirectoryServer> directoryServer) {
+    directoryServer->Server::initBroadcast(BROADCAST_PORT);
     
     while (true) {
-        Message *message = directoryServer.listenToBroadcasts();
+        Message *message = directoryServer->listenToBroadcasts();
         auto hello = load<Hello>(message->getMessage());
         if (hello.getMessage() == "DoS")
             hello.setMessage("ME");
-        Message *reply = directoryServer.Server::saveAndGetMessage(hello, Message::MessageType::Reply,
+        Message *reply = directoryServer->Server::saveAndGetMessage(hello, Message::MessageType::Reply,
                                                                    Message::OperationType::HELLO);
-        directoryServer.Server::send(reply);
+        directoryServer->Server::send(reply);
     }
 }
 
 void DirectoryServer::loadDatabase() {
     std::ifstream in;
-    in.open(databasePath + usersFile);
     std::string username;
-    std::string password;
-    while (in >> username >> password) {
-        User user = User();
-        user.setUsername(username);
-        user.setPassword(password);
-        user.setAuthenticated(false);
-        this->users[username] = user;
+    in.open(databasePath + usersFile);
+    if(in.is_open()) {
+        std::string password;
+        while (in >> username >> password) {
+            User user = User();
+            user.setUsername(username);
+            user.setPassword(password);
+            user.setAuthenticated(false);
+            this->users[username] = user;
+        }
     }
+    in.close();
     in.open(databasePath + directoryFile);
-    std::string imageList;
-    while (in >> username >> imageList) {
-        std::vector<std::string> images;
-        boost::split(images, imageList, boost::is_any_of(", "));
-        this->users[username].setImages(images);
+    if(in.is_open()) {
+        std::string imageList;
+        while (in >> username >> imageList) {
+            std::vector<std::string> images;
+            boost::split(images, imageList, boost::is_any_of(", "));
+            this->users[username].setImages(images);
+        }
     }
     in.close();
 }
@@ -84,14 +99,18 @@ void DirectoryServer::loadDatabase() {
 void DirectoryServer::saveDatabase() {
     std::ofstream out;
     out.open(databasePath + usersFile);
-    for (const User &user : this->users | boost::adaptors::map_values) {
-        out << user.getUsername() << user.getPassword();
-    }
+    if(out.is_open())
+        for (const User &user : this->users | boost::adaptors::map_values) {
+            out << user.getUsername() << std::endl << user.getPassword() << std::endl;
+        }
+    out.close();
+
     out.open(databasePath + directoryFile);
-    for (const User &user : this->users | boost::adaptors::map_values) {
-        std::string imageList = boost::algorithm::join(user.getImages(), ", ");
-        out << user.getUsername() << imageList;
-    }
+    if(out.is_open())
+        for (const User &user : this->users | boost::adaptors::map_values) {
+            std::string imageList = boost::algorithm::join(user.getImages(), ", ");
+            out << user.getUsername()  << std::endl << imageList << std::endl;
+        }
     out.close();
 }
 
@@ -122,60 +141,60 @@ bool DirectoryServer::authenticate(const std::string &username, const std::strin
     return this->userExists(username) && this->users[username].getPassword() == hashedPassword;
 }
 
-void DirectoryServer::handleRequest(Message* message, DirectoryServer &directoryServer) {
+void DirectoryServer::handleRequest(Message* message, boost::shared_ptr<DirectoryServer> directoryServer) {
     switch (message->getMessageType()) {
         case Message::MessageType::Request:
             Message *reply;
             switch (message->getOperation()) {
                 case Message::OperationType::REGISTER:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.registerUser(load<RegisterRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->registerUser(load<RegisterRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::REGISTER);
                     break;
                 case Message::OperationType::LOGIN:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.loginUser(load<LoginRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->loginUser(load<LoginRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::LOGIN);
                     break;
                 case Message::OperationType::LOGOUT:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.logoutUser(load<LogoutRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->logoutUser(load<LogoutRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::LOGOUT);
                     break;
                 case Message::OperationType::FEED:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.feed(load<FeedRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->feed(load<FeedRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::FEED);
                     break;
                 case Message::OperationType::SEARCH:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.searchUser(load<SearchRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->searchUser(load<SearchRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::SEARCH);
                     break;
                 case Message::OperationType::ADD_IMAGE:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.addImage(load<AddImageRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->addImage(load<AddImageRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::ADD_IMAGE);
                     break;
                 case Message::OperationType::DELETE_IMAGE:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.delImage(load<DeleteImageRequest>(message->getMessage())),
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->delImage(load<DeleteImageRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::DELETE_IMAGE);
                     break;
                 case Message::OperationType::ECHO:
-                    reply = directoryServer.Server::saveAndGetMessage(load<Echo>(message->getMessage()),
+                    reply = directoryServer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
                                                               Message::MessageType::Reply,
                                                               Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::HELLO:
-                    reply = directoryServer.Server::saveAndGetMessage(
-                            directoryServer.handleHello(load<Hello>(message->getMessage())), Message::MessageType::Reply,
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->handleHello(load<Hello>(message->getMessage())), Message::MessageType::Reply,
                             Message::OperationType::HELLO);
                     break;
                 default:
                     break;
             }
-            directoryServer.sendReply(reply);
+            directoryServer->sendReply(reply);
             break;
         case Message::MessageType::Reply:
             switch (message->getOperation()) {
@@ -228,9 +247,10 @@ LoginReply DirectoryServer::loginUser(const LoginRequest &req) {
         reply.setFlag(false);
         reply.setToken(token);
     } else {
-        reply.setMsg("Incorrect username or password.");
         reply.setFlag(true);
+        reply.setMsg("Incorrect username or password.");
     }
+
     return reply;
 }
 
@@ -285,10 +305,16 @@ AddImageReply DirectoryServer::addImage(const AddImageRequest &req) {
             if (!this->users[username].imageExists(imageName)) {
                 this->users[username].addImage(imageName);
                 std::ofstream out;
-                out.open(THUMBNAILS_DIR + username + "-" + imageName);
-                out << req.getThumbnail();
-                out.close();
-                reply.setFlag(false);
+                std::string path = THUMBNAILS_DIR + username + "-" + imageName;
+                out.open(path);
+                if(out.is_open()) {
+                    out << req.getThumbnail();
+                    out.close();
+                    reply.setFlag(false);
+                } else {
+                    reply.setFlag(true);
+                    reply.setMsg("Couldnt save thumbnail");
+                }
             } else {
                 reply.setFlag(true);
                 reply.setMsg(IMAGE_EXISTS);
@@ -305,7 +331,6 @@ AddImageReply DirectoryServer::addImage(const AddImageRequest &req) {
 }
 
 DeleteImageReply DirectoryServer::delImage(const DeleteImageRequest &req) {
-
     DeleteImageReply reply = DeleteImageReply();
     const std::string &username = req.getUserName();
     const std::string &token = req.getToken();
@@ -315,6 +340,7 @@ DeleteImageReply DirectoryServer::delImage(const DeleteImageRequest &req) {
             if (this->users[username].imageExists(imageName)) {
                 std::string path = THUMBNAILS_DIR + username + "-" + imageName;
                 remove(path.c_str());
+                this->users[username].delImage(imageName);
                 reply.setFlag(false);
             } else {
                 reply.setFlag(true);
@@ -335,14 +361,29 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
     FeedReply reply = FeedReply();
     const std::string &username = req.getUserName();
     const std::string &token = req.getToken();
-
+    int index = 0;
+    std::unordered_map<std::string, std::string> thumbnails;
     if (this->userExists(username)) {
         if (this->authorize(username, token)) {
             for (const User &user : this->users | boost::adaptors::map_values) {
-                for (const std::string &image : user.getImages()) {
-                    //TODO::FEED
+                if(user.getUsername() != username) {
+                    for (const std::string &image : user.getImages()) {
+                        if(index < req.getLastIndex()) {
+                            continue;
+                        }
+                        std::ifstream in;
+                        std::string path = THUMBNAILS_DIR + user.getUsername() + "-" + image;
+                        in.open(path);
+                        std::string thumbnail((std::istreambuf_iterator<char>(in)),
+                                              std::istreambuf_iterator<char>());
+                        thumbnails[user.getUsername()] = thumbnail;
+                        in.close();
+                        index++;
+                    }
                 }
             }
+            reply.setCurrentIndex(index);
+            reply.setImages(thumbnails);
             reply.setFlag(false);
         } else {
             reply.setFlag(true);
@@ -358,6 +399,8 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
 DirectoryServer::~DirectoryServer() {
     this->saveDatabase();
 }
+
+
 
 const std::string &DirectoryServer::User::getUsername() const {
     return username;
@@ -429,6 +472,14 @@ void DirectoryServer::User::addImage(const std::string &imageName) {
 
 bool DirectoryServer::User::imageExists(const std::string &imageName) {
     return std::find(this->images.begin(), this->images.end(), imageName) != this->images.end();
+}
+
+void DirectoryServer::User::addRequest(MessageStructures::User::ViewImageRequest request) {
+    this->requests.push_back(request);
+}
+
+void DirectoryServer::User::delImage(const std::string &imageName) {
+    images.erase(std::find(this->images.begin(), this->images.end(), imageName));
 }
 
 #pragma clang diagnostic pop

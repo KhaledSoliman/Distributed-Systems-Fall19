@@ -33,6 +33,7 @@ public:
         DELETE_IMAGE,
         ADD_VIEWER,
         REMOVE_VIEWER,
+        GET_REQUESTS,
         UPDATE_VIEW_LIMIT,
     };
 

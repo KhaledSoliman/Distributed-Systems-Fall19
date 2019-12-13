@@ -9,11 +9,14 @@
 #include "Message.h"
 #include "Server.h"
 #include "Client.h"
+#include <new>
+#include <memory>
+#include <boost/thread.hpp>
 
 #define TIMEOUT 30000
 #define INTERVAL 1000
 #define DEFAULT_LISTEN_PORT 3000
-#define DATABASE_DIR "/Users/snappy/CLionProjects/Distributed-Systems-Fall19/database"
+#define DATABASE_DIR "database/"
 #define THUMBNAILS_DIR "thumbnails/"
 #define DIRECTORY_FILE "directory.txt"
 #define USER_FILE "users.txt"
@@ -39,6 +42,7 @@ private:
         bool authenticated;
         int portNum = DEFAULT_LISTEN_PORT;
         std::vector<std::string> images;
+        std::vector<MessageStructures::User::ViewImageRequest> requests;
         time_t lastSeen;
 
         const std::string &getUsername() const;
@@ -76,6 +80,10 @@ private:
         bool imageExists(const std::string& imageName);
 
         void addImage(const std::string& imageName);
+
+        void delImage(const std::string& imageName);
+
+        void addRequest(MessageStructures::User::ViewImageRequest request);
     };
 
     std::unordered_map<std::string, User> users;
@@ -85,6 +93,8 @@ private:
     std::string databasePath;
     std::string directoryFile;
     std::string usersFile;
+    boost::shared_ptr<DirectoryServer> directoryServer;
+
 public:
     explicit DirectoryServer(const std::string &hostname);
 
@@ -93,9 +103,11 @@ public:
 
     void init();
 
-    static void helloListener(DirectoryServer& directoryServer);
+    static void helloListener(boost::shared_ptr<DirectoryServer> directoryServer);
 
-    void static listen(DirectoryServer& directoryServer);
+    void static listen(boost::shared_ptr<DirectoryServer> directoryServer);
+
+    void static databasePersistence(boost::shared_ptr<DirectoryServer> directoryServer);
 
     void loadDatabase();
 
@@ -111,7 +123,7 @@ public:
 
     bool authenticate(const std::string &username, const std::string &hashedPassword);
 
-    static void handleRequest(Message* message, DirectoryServer& directoryServer);
+    static void handleRequest(Message* message, boost::shared_ptr<DirectoryServer> directoryServer);
 
     SearchReply searchUser(const SearchRequest& req);
 

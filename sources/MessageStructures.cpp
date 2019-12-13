@@ -116,7 +116,7 @@ const std::string &AddImageRequest::getThumbnail() const {
 }
 
 void AddImageRequest::setThumbnail(const std::string &thumbnail) {
-    AddImageRequest::thumbnail = thumbnail;
+    this->thumbnail = thumbnail;
 }
 
 const std::string &ViewImageRequest::getUserName() const {
