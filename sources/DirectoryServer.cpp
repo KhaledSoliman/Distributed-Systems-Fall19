@@ -59,6 +59,8 @@ void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer)
         Message *message = directoryServer->Server::receive();
         std::cout << "Recieved: " << message->getOperation() << std::endl;
         boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
+        if(message->getOperation() == Message::OperationType::FEED)
+            boost::this_thread::sleep(boost::posix_time::seconds(12));
     }
 }
 
