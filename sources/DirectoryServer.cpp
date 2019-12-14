@@ -204,7 +204,7 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->handleHello(load<Hello>(message->getMessage())),
                             Message::MessageType::Reply,
-                            Message::OperationType::HELLO);
+                            Message::OperationType::ACK);
                     break;
                 case Message::OperationType::AUTH_HELLO:
                     reply = directoryServer->Server::saveAndGetMessage(
@@ -215,7 +215,7 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                 default:
                     break;
             }
-            directoryServer->sendReply(reply);
+            directoryServer->Server::send(reply);
             break;
         case Message::MessageType::Reply:
             switch (message->getOperation()) {

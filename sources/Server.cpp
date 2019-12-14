@@ -51,9 +51,7 @@ bool Server::send(Message *_message) {
     if (Message::verifyFragmentation(marshalled)) {
         std::vector<Message *> msgs = _message->fragment(marshalled);
         int i = 0;
-
         do {
-            std::cout << msgs[i]->getMessage().length() << std::endl;
             std::string fragment_marshalled = msgs[i]->marshal();
             this->udpServerSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.length());
             bool isAcknowledged = awaitAck();
