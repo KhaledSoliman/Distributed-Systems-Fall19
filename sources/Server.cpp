@@ -49,12 +49,12 @@ void Server::serveRequest() {
 bool Server::send(Message *_message) {
     std::string marshalled = _message->marshal();
     if (Message::verifyFragmentation(marshalled)) {
-        std::vector<Message> msgs = _message->fragment(marshalled);
+        std::vector<Message *> msgs = _message->fragment(marshalled);
         int i = 0;
 
         do {
-            std::cout << msgs[i].getMessage().length() << std::endl;
-            std::string fragment_marshalled = msgs[i].marshal();
+            std::cout << msgs[i]->getMessage().length() << std::endl;
+            std::string fragment_marshalled = msgs[i]->marshal();
             this->udpServerSocket->writeToSocket(&fragment_marshalled[0], fragment_marshalled.length());
             bool isAcknowledged = awaitAck();
             if (isAcknowledged)
@@ -75,30 +75,30 @@ Message *Server::listenToBroadcasts() {
 }
 
 Message *Server::receive() {
-    std::map<int, Message> msgs;
-    Message fragment;
+    std::map<int, Message *> msgs;
+    Message *fragment = nullptr;
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
 
 
     do {
         this->udpServerSocket->readFromSocketWithBlock(reply, MAX_READ_MESSAGE_SIZE);
-        fragment = Message(reply);
-        msgs[fragment.getRPCId().getFragmentId()] = fragment;
-        if (fragment.getRPCId().isFragmented()) {
-            std::cout << "Fragment ID: " << fragment.getRPCId().getFragmentId() << std::endl;
-            std::cout << "Fragment Size: " << fragment.getMessage().length() << std::endl;
-            ack(fragment.getRPCId());
+        fragment = new Message(reply);
+        msgs[fragment->getRPCId().getFragmentId()] = fragment;
+        if (fragment->getRPCId().isFragmented()) {
+            std::cout << "Fragment ID: " << fragment->getRPCId().getFragmentId() << std::endl;
+            std::cout << "Fragment Size: " << fragment->getMessage().length() << std::endl;
+            ack(fragment->getRPCId());
         }
-    } while (fragment.getRPCId().isFragmented() && (msgs.size() * MAX_MESSAGE_SIZE) < fragment.getMessageSize());
+    } while (fragment->getRPCId().isFragmented() && (msgs.size() * MAX_MESSAGE_SIZE) < fragment->getMessageSize());
 
     if (msgs.size() > 1) {
         std::string stringHolder;
         for (auto &msg : msgs) {
-            stringHolder += msg.second.getMessage();
+            stringHolder += msg.second->getMessage();
         }
         return new Message(&stringHolder[0]);
     } else {
-        return &msgs[0];
+        return msgs[0];
     }
 }
 

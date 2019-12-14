@@ -90,8 +90,8 @@ std::vector<std::string> Message::split(const std::string& str, int splitLength)
     return ret;
 }
 
-std::vector<Message> Message::fragment(std::string &marshalled) {
-    std::vector<Message> msgs;
+std::vector<Message *> Message::fragment(std::string &marshalled) {
+    std::vector<Message *> msgs;
     std::vector<std::string> newBuffers = Message::split(marshalled, MAX_MESSAGE_SIZE);
     int i = 0;
     for(const std::string& newBuffer: newBuffers) {
@@ -99,7 +99,7 @@ std::vector<Message> Message::fragment(std::string &marshalled) {
         rpc.setFragmented(true);
         rpc.setFragmentId(i);
         rpc.setMessageId(rpcId.getMessageId());
-        msgs.push_back(Message(this->messageType, this->operation, newBuffer, marshalled.length(), rpc));
+        msgs.push_back(new Message(this->messageType, this->operation, newBuffer, marshalled.length(), rpc));
         i++;
     }
     return msgs;

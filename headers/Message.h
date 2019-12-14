@@ -160,7 +160,7 @@ public:
 
     static std::vector<std::string> split(const std::string &str, int splitLength);
 
-    std::vector<Message> fragment(std::string &marshalled);
+    std::vector<Message *> fragment(std::string &marshalled);
 
     ~Message();
 
@@ -180,6 +180,7 @@ private:
 
 };
 
+BOOST_CLASS_TRACKING(Message, boost::serialization::track_always);
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
 
