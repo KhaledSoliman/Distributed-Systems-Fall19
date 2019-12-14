@@ -50,15 +50,18 @@ bool Client::send(Message *_message) {
 
 bool Client::awaitAck() {
     char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
-    this->udpSocket->readSocketWithTimeout(reply, MAX_READ_MESSAGE_SIZE, 0, 2000);
+    this->udpSocket->readSocketWithTimeout(reply, MAX_READ_MESSAGE_SIZE, 0, 500);
+    std::cout << std::strlen(reply) << std::endl;
+    std::cout << reply << std::endl;
     if (strcmp(reply, "Server Timed Out!") == 0) {
         std::cout << "Server timed out" << std::endl;
         return false;
     } else {
-        Ack message = load<Ack>(Message(reply).getMessage());
-        std::cout << message.getFragmentId() << std::endl;
-        std::cout << "ACK RECEIVED" << std::endl;
-        return true;
+        auto *message = new Message(reply);
+        if (message->getOperation() == Message::OperationType::ACK) {
+            std::cout << "ACK RECEIVED" << std::endl;
+            return true;
+        }
     }
 }
 
