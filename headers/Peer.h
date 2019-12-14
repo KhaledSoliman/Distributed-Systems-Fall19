@@ -71,6 +71,8 @@ public:
 
     AddImageRequest addImage(const std::string &imagePath, const std::string& imageName);
 
+    DownloadImageRequest downloadImage(const std::string& imageName);
+
     DeleteImageRequest delImage(const std::string &imageName);
 
     FeedRequest feed(int imageNum);

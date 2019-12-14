@@ -397,12 +397,12 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         if (reply == nullptr) {
                             std::cout << "DoS didn't respond" << std::endl;
                         } else {
-                            auto Search = load<GetRequestsReply>(reply->getMessage());
-//                            if(!getRequestsReply.isFlag()){
-//                                std::cout << "AddImage Reply: " << !getRequestsReply.isFlag() << std::endl;
-//                            } else {
-//                                std::cout << "AddImage Reply: " << getRequestsReply.getMsg() << std::endl;
-//                            }
+                            auto viewImageRequest = load<ViewImageRequest>(reply->getMessage());
+                           if(!viewImageRequest.isFlag()){
+                                std::cout << "GetRequest Reply: " << !viewImageRequest.isFlag() << std::endl;
+                           } else {
+                                std::cout << "GetRequest Reply: " << viewImageRequest.getMsg() << std::endl;
+                           }
                         }
                     }
                 }
@@ -411,10 +411,9 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     std::string targetUsername;
                     std::cout << "Enter username to search directory for:" << std::endl;
                     std::cin >> targetUsername;
-                    Message *message = peer->Client::saveAndGetMessage(
-                            peer->searchUser(targetUsername),
-                            Message::MessageType::Request,
-                            Message::OperationType::SEARCH);
+                    Message *message = peer->Client::saveAndGetMessage(peer->searchUser(targetUsername),
+                                                                    Message::MessageType::Request,
+                                                                    Message::OperationType::SEARCH);
                     peer->connectToDoS();
                     if (peer->Client::send(message)) {
                         Message *reply = peer->Client::receiveWithTimeout();
@@ -423,8 +422,10 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         } else {
                             auto searchReply = load<SearchReply>(reply->getMessage());
                             if (!searchReply.isFlag()) {
+                                peer->setAuthenticated(true);
                                 std::cout << "Search Reply: " << !searchReply.isFlag() << std::endl;
                             } else {
+                                peer->setAuthenticated(false);
                                 std::cout << "search Reply: " << searchReply.getMsg() << std::endl;
                             }
                         }
@@ -432,6 +433,12 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                 }
                     break;
                 case peerChoices::RequestView: {
+                    std::string ImageName;
+                    int viewNo;
+                    std::cout << "Enter Image Name: " << std::endl;
+                    std::cin >> ImageName;
+                    std::cout << "Enter the number of required Views: " << std::endl;
+                    std::cin >> viewNo;
                     Message *message = peer->Client::saveAndGetMessage(peer->getRequests(),
                                                                        Message::MessageType::Request,
                                                                        Message::OperationType::ADD_VIEWER);
@@ -441,17 +448,38 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         if (reply == nullptr) {
                             std::cout << "DoS didn't respond" << std::endl;
                         } else {
-                            auto searchReply = load<SearchReply>(reply->getMessage());
-                            if (!searchReply.isFlag()) {
-                                std::cout << "Search Reply: " << !searchReply.isFlag() << std::endl;
+                            auto addViewerReply = load<AddViewerReply>(reply->getMessage());
+                            if (!addViewerReply.isFlag()) {
+                                std::cout << "Search Reply: " << !addViewerReply.isFlag() << std::endl;
                             } else {
-                                std::cout << "search Reply: " << searchReply.getMsg() << std::endl;
+                                std::cout << "search Reply: " << addViewerReply.getMsg() << std::endl;
                             }
                         }
                     }
                 }
                     break;
-                case peerChoices::DownloadImage:
+                case peerChoices::DownloadImage: {
+                    std::string imageName;
+                    std::cout << "Please input image name" << std::endl;
+                    std::cin >> imageName;
+                    Message *message = peer->Client::saveAndGetMessage(peer->downloadImage(imageName),
+                                                                       Message::MessageType::Request,
+                                                                       Message::OperationType::DOWNLOAD_IMAGE);
+                    peer->connectToDoS();
+                    if (peer->Client::send(message)) {
+                        Message *reply = peer->Client::receiveWithTimeout();
+                        if (reply == nullptr) {
+                            std::cout << "DoS didn't respond" << std::endl;
+                        } else {
+                            auto downloadImageReply = load<DownloadImageReply>(reply->getMessage());
+                            if (!downloadImageReply.isFlag()) {
+                                std::cout << "Download Reply: " << !downloadImageReply.isFlag() << std::endl;
+                            } else {
+                                std::cout << "download Reply: " << downloadImageReply.getMsg() << std::endl;
+                            }
+                        }
+                    }
+                }
                     break;
                 default:
                     std::cout << "Choice unknown" << std::endl;
@@ -639,6 +667,15 @@ GetRequests Peer::getRequests() {
     message.setToken(this->token);
     message.setUserName(this->username);
     return message;
+}
+
+DownloadImageRequest Peer::downloadImage(const std::string &imageName) {
+    DownloadImageRequest request = DownloadImageRequest();
+    std::cout << this->username << std::endl;
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageName(imageName);
+    return request;
 }
 
 

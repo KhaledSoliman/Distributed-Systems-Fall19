@@ -279,3 +279,4 @@ void SearchRequest::setTargetUsername(const std::string &targetUsername) {
     SearchRequest::targetUsername = targetUsername;
 }
 
+
