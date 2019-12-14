@@ -580,7 +580,7 @@ std::string Peer::createThumbnail(const std::string &imagePath) {
 //    if(pathList[1] == "jpeg" || pathList[1] == "jpg") {
     bg::rgb8_image_t img;
     bg::read_image(imagePath, img, bg::jpeg_tag{});
-    bg::rgb8_image_t square100(13583, 5417);
+    bg::rgb8_image_t square100(250, 250);
     bg::resize_view(bg::const_view(img), bg::view(square100), bg::bilinear_sampler{});
     bg::write_view("resize.jpg", bg::const_view(square100), bg::jpeg_tag{});
     std::ifstream in;
@@ -670,7 +670,6 @@ GetRequests Peer::getRequests() {
 
 DownloadImageRequest Peer::downloadImage(const std::string &imageName) {
     DownloadImageRequest request = DownloadImageRequest();
-    std::cout << this->username << std::endl;
     request.setUserName(this->username);
     request.setToken(this->token);
     request.setImageName(imageName);
