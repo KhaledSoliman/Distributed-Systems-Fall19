@@ -160,7 +160,7 @@ public:
 
     static std::vector<std::string> split(const std::string &str, int splitLength);
 
-    std::vector<Message *> fragment(std::string &marshalled);
+    std::vector<Message> fragment(std::string &marshalled);
 
     ~Message();
 

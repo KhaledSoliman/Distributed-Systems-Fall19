@@ -397,11 +397,11 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                             std::cout << "DoS didn't respond" << std::endl;
                         } else {
                             auto viewImageRequest = load<ViewImageRequest>(reply->getMessage());
-                           if(!viewImageRequest.isFlag()){
+                            if (!viewImageRequest.isFlag()) {
                                 std::cout << "GetRequest Reply: " << !viewImageRequest.isFlag() << std::endl;
-                           } else {
+                            } else {
                                 std::cout << "GetRequest Reply: " << viewImageRequest.getMsg() << std::endl;
-                           }
+                            }
                         }
                     }
                 }
@@ -411,8 +411,8 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     std::cout << "Enter username to search directory for:" << std::endl;
                     std::cin >> targetUsername;
                     Message *message = peer->Client::saveAndGetMessage(peer->searchUser(targetUsername),
-                                                                    Message::MessageType::Request,
-                                                                    Message::OperationType::SEARCH);
+                                                                       Message::MessageType::Request,
+                                                                       Message::OperationType::SEARCH);
                     peer->connectToDoS();
                     if (peer->Client::send(message)) {
                         Message *reply = peer->Client::receiveWithTimeout();
@@ -546,7 +546,6 @@ RegisterRequest Peer::registerUser(const std::string &username, const std::strin
 
 AddImageRequest Peer::addImage(const std::string &imagePath, const std::string &imageName) {
     AddImageRequest request = AddImageRequest();
-    std::cout << this->username << std::endl;
     request.setUserName(this->username);
     request.setToken(this->token);
     request.setImageName(imageName);
