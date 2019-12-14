@@ -20,7 +20,8 @@ Peer::Peer(const std::string &hostname, int port, const std::string &directorySe
     this->directoryServerPort = directoryServerPort;
 }
 
-Peer::Peer(const std::string &listenHostname, int listenPort) : Server(listenHostname, listenPort) {
+Peer::Peer(const std::string &listenHostname, int listenPort) : Server(listenHostname, listenPort), listenHostname(listenHostname) {
+    this->listenPort = listenPort;
     token = "";
     username = "";
     feedIndex = 0;
@@ -102,7 +103,12 @@ void Peer::init() {
     boost::thread serverThread(&Peer::listen, boost::shared_ptr<Peer>(this));
     boost::thread clientThread(&Peer::handleChoice, boost::shared_ptr<Peer>(this));
     boost::thread cacheThread(&Peer::cache, boost::shared_ptr<Peer>(this));
-    while (true);
+    while (true) {
+        if(this->authenticated && !this->helloProtocol) {
+            boost::thread authHelloThread(&Peer::authHello, boost::shared_ptr<Peer>(this));
+            this->setHelloProtocol(true);
+        }
+    };
 }
 
 void Peer::cache(boost::shared_ptr<Peer> peer) {
@@ -319,17 +325,16 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                                                                        Message::OperationType::FEED);
                     peer->connectToDoS();
                     if (peer->Client::send(message)) {
-                        Message *reply = peer->Client::receiveWithTimeout();
+                        Message *reply = peer->Client::receiveWithBlock();
                         if (reply == nullptr) {
                             std::cout << "DoS didn't respond" << std::endl;
                         } else {
                             auto feedReply = load<FeedReply>(reply->getMessage());
                             if (!feedReply.isFlag()) {
                                 std::ofstream out;
-                                out.open("khloud.jpg");
-                                out << feedReply.getImages().at("khloud");
+                                out.open("khaled.jpg");
+                                out << feedReply.getImages().at("khaled");
                                 out.close();
-
                                 std::cout << "Feed Reply: " << !feedReply.isFlag() << std::endl;
                             } else {
                                 std::cout << "Feed Reply: " << feedReply.getMsg() << std::endl;
@@ -579,7 +584,7 @@ std::string Peer::createThumbnail(const std::string &imagePath) {
 //    if(pathList[1] == "jpeg" || pathList[1] == "jpg") {
     bg::rgb8_image_t img;
     bg::read_image(imagePath, img, bg::jpeg_tag{});
-    bg::rgb8_image_t square100(250, 250);
+    bg::rgb8_image_t square100(13583, 5417);
     bg::resize_view(bg::const_view(img), bg::view(square100), bg::bilinear_sampler{});
     bg::write_view("resize.jpg", bg::const_view(square100), bg::jpeg_tag{});
     std::ifstream in;
@@ -673,6 +678,45 @@ DownloadImageRequest Peer::downloadImage(const std::string &imageName) {
     request.setToken(this->token);
     request.setImageName(imageName);
     return request;
+}
+
+bool Peer::isHelloProtocol() const {
+    return helloProtocol;
+}
+
+void Peer::setHelloProtocol(bool helloProtocol) {
+    Peer::helloProtocol = helloProtocol;
+}
+
+void Peer::authHello(boost::shared_ptr<Peer> peer) {
+    while (peer->isDoSOnline() && peer->isAuthenticated()) {
+        AuthenticatedHello hello = AuthenticatedHello();
+        hello.setUserName(peer->getUsername());
+        hello.setToken(peer->getToken());
+        hello.setIpAddress(peer->getListenHostname());
+        hello.setPort(peer->getListenPort());
+        peer->connectToDoS();
+        Message *message = peer->Client::saveAndGetMessage(hello, Message::MessageType::Request,
+                                                           Message::OperationType::AUTH_HELLO);
+        peer->Client::send(message);
+        boost::this_thread::sleep(boost::posix_time::milliseconds(750));
+    }
+}
+
+const std::string &Peer::getListenHostname() const {
+    return listenHostname;
+}
+
+void Peer::setListenHostname(const std::string &listenHostname) {
+    Peer::listenHostname = listenHostname;
+}
+
+int Peer::getListenPort() const {
+    return listenPort;
+}
+
+void Peer::setListenPort(int listenPort) {
+    Peer::listenPort = listenPort;
 }
 
 

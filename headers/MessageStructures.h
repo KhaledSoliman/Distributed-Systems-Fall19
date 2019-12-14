@@ -138,7 +138,40 @@ namespace MessageStructures {
 
                 [[nodiscard]] const std::string &getToken() const;
 
-                void setToken(const std::string &token);
+                void setToken(const std::string &oken);
+            };
+
+            struct AuthenticatedHello : AuthRequest {
+            private:
+                int port;
+                std::string ipAddress;
+
+                friend class boost::serialization::access;
+
+
+                template<class Archive>
+                void serialize(Archive &ar, const unsigned int version) {
+                    ar & port;
+                    ar & ipAddress;
+                }
+
+            public:
+                int getPort() const {
+                    return port;
+                }
+
+                void setPort(int port) {
+                    AuthenticatedHello::port = port;
+                }
+
+                const std::string &getIpAddress() const {
+                    return ipAddress;
+                }
+
+                void setIpAddress(const std::string &ipAddress) {
+                    AuthenticatedHello::ipAddress = ipAddress;
+                }
+
             };
 
             struct LoginRequest {
@@ -292,29 +325,30 @@ namespace MessageStructures {
         private:
         public:
         };
-          //  Download Image
-          struct DownloadImageRequest : public Authentication::AuthRequest {
-          private:
-              std::string image_name;
 
-              friend class boost::serialization::access;
+        //  Download Image
+        struct DownloadImageRequest : public Authentication::AuthRequest {
+        private:
+            std::string image_name;
 
-              template<class Archive>
-              void serialize(Archive &ar, const unsigned int version) {
-                  ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
-                  ar & image_name;
-              }
+            friend class boost::serialization::access;
 
-          public:
-              const std::string &getImageName() const {
-                  return image_name;
-              }
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & image_name;
+            }
 
-              void setImageName(const std::string &imageName) {
-                  image_name = imageName;
-              }
+        public:
+            const std::string &getImageName() const {
+                return image_name;
+            }
 
-          };
+            void setImageName(const std::string &imageName) {
+                image_name = imageName;
+            }
+
+        };
 
         struct DownloadImageReply : public Control::Error {
         private:
@@ -360,6 +394,7 @@ namespace MessageStructures {
 
         public:
             [[nodiscard]] const Image &getImage() const;
+
             void setImage(const Image &image);
         };
 
@@ -396,6 +431,7 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Control::Error>(*this);
             }
+
         public:
         };
 
@@ -438,6 +474,7 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Control::Error>(*this);
             }
+
         public:
         };
 
@@ -566,6 +603,7 @@ namespace MessageStructures {
             void serialize(Archive &ar, const unsigned int version) {
                 ar & requests;
             }
+
         public:
             const std::vector<ViewImageRequest> &getRequests() const {
                 return requests;
@@ -609,13 +647,30 @@ namespace MessageStructures {
 
         struct SearchReply : public Control::Error {
         private:
-            std::map<std::string, Control::realSockAddr> users_ips;
-
+            int port;
+            std::string address;
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
-                ar & users_ips;
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & port & address;
+            }
+        public:
+            int getPort() const {
+                return port;
+            }
+
+            void setPort(int port) {
+                SearchReply::port = port;
+            }
+
+            const std::string &getAddress() const {
+                return address;
+            }
+
+            void setAddress(const std::string &address) {
+                SearchReply::address = address;
             }
 
         };
@@ -670,6 +725,9 @@ OBJECT_SERIALIZATION(Echo)
 
 //Directory Service Hello
 OBJECT_SERIALIZATION(Hello)
+
+//Directory Service Hello
+OBJECT_SERIALIZATION(AuthenticatedHello)
 
 //Register
 OBJECT_SERIALIZATION(RegisterRequest)

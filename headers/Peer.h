@@ -25,6 +25,9 @@ private:
     bool authenticated;
     int feedIndex;
     bool DoSOnline;
+    bool helloProtocol;
+    std::string listenHostname;
+    int listenPort;
     Cache myCache;
     boost::shared_ptr<Peer> peer;
 
@@ -46,6 +49,8 @@ public:
     void static handleRequest(Message* message, boost::shared_ptr<Peer> peer);
 
     void static handleChoice(boost::shared_ptr<Peer> peer);
+
+    void static authHello(boost::shared_ptr<Peer> peer);
 
     bool discoverDirectoryService();
 
@@ -106,6 +111,19 @@ public:
     int getFeedIndex() const;
 
     void setFeedIndex(int feedIndex);
+
+    bool isHelloProtocol() const;
+
+    void setHelloProtocol(bool helloProtocol);
+
+    const std::string &getListenHostname() const;
+
+    void setListenHostname(const std::string &listenHostname);
+
+    int getListenPort() const;
+
+    void setListenPort(int listenPort);
+
 };
 
 

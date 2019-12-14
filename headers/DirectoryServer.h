@@ -115,6 +115,8 @@ public:
 
     Ack handleHello(Hello req);
 
+    Ack handleAuthHello(AuthenticatedHello req);
+
     bool userExists(const std::string& username);
 
     static std::string generateAuthToken();
@@ -141,6 +143,5 @@ public:
 
     ~DirectoryServer();
 };
-
 
 #endif //PROJ_DIRECTORYSERVER_H

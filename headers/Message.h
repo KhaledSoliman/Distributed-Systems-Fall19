@@ -35,6 +35,7 @@ public:
         REMOVE_VIEWER,
         GET_REQUESTS,
         UPDATE_VIEW_LIMIT,
+        AUTH_HELLO
     };
 
     struct RPC_ID {

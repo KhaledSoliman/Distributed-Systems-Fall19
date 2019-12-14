@@ -206,6 +206,12 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                             Message::MessageType::Reply,
                             Message::OperationType::HELLO);
                     break;
+                case Message::OperationType::AUTH_HELLO:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->handleAuthHello(load<AuthenticatedHello>(message->getMessage())),
+                            Message::MessageType::Reply,
+                            Message::OperationType::HELLO);
+                    break;
                 default:
                     break;
             }
@@ -235,9 +241,8 @@ SearchReply DirectoryServer::searchUser(const SearchRequest &req) {
     if (this->authorize(username, token)) {
         const std::string &targetUsername = req.getTargetUsername();
         if (this->userExists(targetUsername)) {
-            std::string address = this->users[targetUsername].getAddress();
-            int portNum = this->users[targetUsername].getPortNum();
-            //TODO::get user address
+            reply.setAddress(this->users[targetUsername].getAddress());
+            reply.setPort(this->users[targetUsername].getPortNum());
             reply.setFlag(false);
         } else {
             reply.setFlag(true);
@@ -414,6 +419,18 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
 
 DirectoryServer::~DirectoryServer() {
     this->saveDatabase();
+}
+
+Ack DirectoryServer::handleAuthHello(AuthenticatedHello req) {
+    const std::string &username = req.getUserName();
+    const std::string &token = req.getToken();
+    if (this->userExists(username)) {
+        if (this->authorize(username, token)) {
+            this->users[username].setAddress(req.getIpAddress());
+            this->users[username].setPortNum(req.getPort());
+        }
+    }
+    return Ack();
 }
 
 const std::string &DirectoryServer::User::getUsername() const {
