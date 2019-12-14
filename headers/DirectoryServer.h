@@ -16,8 +16,8 @@
 #define TIMEOUT 30000
 #define INTERVAL 1000
 #define DEFAULT_LISTEN_PORT 3000
-#define DATABASE_DIR "database/"
-#define THUMBNAILS_DIR "thumbnails/"
+#define DATABASE_DIR "../database/"
+#define THUMBNAILS_DIR "../thumbnails/"
 #define DIRECTORY_FILE "directory.txt"
 #define USER_FILE "users.txt"
 

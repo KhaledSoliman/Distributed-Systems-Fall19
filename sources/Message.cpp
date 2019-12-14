@@ -98,7 +98,7 @@ std::vector<Message *> Message::fragment(std::string &marshalled) {
         RPC_ID rpc = RPC_ID(rpcId.address, rpcId.portNumber);
         rpc.setFragmented(true);
         rpc.setFragmentId(i);
-        rpc.setMessageId(1);
+        rpc.setMessageId(rpcId.getMessageId());
         msgs.push_back(new Message(this->messageType, this->operation, newBuffer, marshalled.length(), rpc));
         i++;
     }

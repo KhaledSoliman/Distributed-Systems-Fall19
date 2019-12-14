@@ -120,10 +120,11 @@ bool Server::awaitAck() {
 }
 
 void Server::ack(const Message::RPC_ID &rpcId) {
-    auto *request = new Message(Message::MessageType::Reply, Message::OperationType::ACK, "OK", 2,
-                                *this->constructRPC());
-    std::string marshalled = request->marshal();
-    this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.length());
+    Ack acknowledgment = Ack();
+    acknowledgment.setMessageId(rpcId.getMessageId());
+    acknowledgment.setFragmentId(rpcId.getFragmentId());
+    auto *request = this->saveAndGetMessage(acknowledgment, Message::MessageType ::Reply, Message::OperationType::ACK);
+    this->send(request);
     std::cout << "ACK Transmitted" << std::endl;
 }
 

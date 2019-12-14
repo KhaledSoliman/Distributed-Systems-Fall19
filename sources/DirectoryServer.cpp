@@ -96,7 +96,7 @@ void DirectoryServer::loadDatabase() {
     if (in.is_open()) {
         std::string imageList;
         while (in >> username >> imageList) {
-            if(imageList != "none") {
+            if (imageList != "none") {
                 std::vector<std::string> images;
                 boost::split(images, imageList, boost::is_any_of(", "));
                 this->users[username].setImages(images);
@@ -118,7 +118,6 @@ void DirectoryServer::saveDatabase() {
     out.open(databasePath + directoryFile);
     if (out.is_open())
         for (const User &user : this->users | boost::adaptors::map_values) {
-            std::cout << user.getUsername();
             std::string imageList;
             if (user.getImages().size() > 0) {
                 imageList = boost::algorithm::join(user.getImages(), ", ");

@@ -68,14 +68,33 @@ namespace MessageStructures {
 
         struct Ack : Error {
         private:
+            int fragmentId;
+            int messageId;
+
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
-                ar;
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & fragmentId & messageId;
             }
 
         public:
+            int getFragmentId() const {
+                return fragmentId;
+            }
+
+            void setFragmentId(int fragmentId) {
+                Ack::fragmentId = fragmentId;
+            }
+
+            int getMessageId() const {
+                return messageId;
+            }
+
+            void setMessageId(int messageId) {
+                Ack::messageId = messageId;
+            }
 
         };
 

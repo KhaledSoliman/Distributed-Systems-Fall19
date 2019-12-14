@@ -100,7 +100,6 @@ bool Peer::pingDoS() {
 void Peer::init() {
     boost::thread DoSThread(&Peer::DoSChecker, boost::shared_ptr<Peer>(this));
     boost::thread serverThread(&Peer::listen, boost::shared_ptr<Peer>(this));
-    // boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     boost::thread clientThread(&Peer::handleChoice, boost::shared_ptr<Peer>(this));
     boost::thread cacheThread(&Peer::cache, boost::shared_ptr<Peer>(this));
     while (true);
