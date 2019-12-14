@@ -205,6 +205,7 @@ namespace MessageStructures {
 
                 template<class Archive>
                 void serialize(Archive &ar, const unsigned int version) {
+                    ar & boost::serialization::base_object<Control::Error>(*this);
                     ar & registered;
                 }
 
@@ -305,6 +306,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
                 ar & image;
             }
 
@@ -341,6 +343,12 @@ namespace MessageStructures {
 
         struct DeleteImageReply : public Control::Error {
         private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+            }
         public:
         };
 
@@ -355,6 +363,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & userName;
                 ar & imageName;
                 ar & viewerName;
@@ -376,6 +385,12 @@ namespace MessageStructures {
 
         struct AddViewerReply : Control::Error {
         private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+            }
         public:
         };
 
@@ -388,6 +403,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & imageName;
                 ar & to_remove;
             }
@@ -420,6 +436,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & targetUsername;
                 ar & name;
                 ar & newLimit;
@@ -453,6 +470,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
                 ar & imageNum & lastIndex;
             }
 
@@ -476,6 +494,7 @@ namespace MessageStructures {
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
                 ar & currentIndex;
                 ar & images;
             }

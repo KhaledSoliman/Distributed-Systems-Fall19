@@ -8,10 +8,16 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
+
 #define ERROR_AUTH "Failed to authenticate credentials"
 #define USER_NOT_FOUND "User does not exist"
+#define USER_EXISTS "User already exists"
 #define IMAGE_EXISTS "Image already exists"
 #define IMAGE_DOES_NOT_EXIST "Image does not exist for this user"
+#define LOGIN_FAILURE "Incorrect username or password"
+#define REGISTER_SUCCESS "User registered successfully."
+#define THUMBNAIL_SAVE_ERR "Couldnt save thumbnail"
+
 
 DirectoryServer::DirectoryServer(const std::string &hostname) : Server(hostname, DEFAULT_LISTEN_PORT) {
     this->hostname = hostname;
@@ -32,15 +38,16 @@ DirectoryServer::DirectoryServer(const std::string &hostname, int port, const st
 }
 
 void DirectoryServer::init() {
+
     this->loadDatabase();
-    boost::thread helloListener(&DirectoryServer::helloListener, boost::shared_ptr<DirectoryServer> (this));
-    boost::thread serverListener(&DirectoryServer::listen, boost::shared_ptr<DirectoryServer> (this));
-    boost::thread databasePersist(&DirectoryServer::databasePersistence, boost::shared_ptr<DirectoryServer> (this));
-    while(true);
+    boost::thread helloListener(&DirectoryServer::helloListener, boost::shared_ptr<DirectoryServer>(this));
+    boost::thread serverListener(&DirectoryServer::listen, boost::shared_ptr<DirectoryServer>(this));
+    boost::thread databasePersist(&DirectoryServer::databasePersistence, boost::shared_ptr<DirectoryServer>(this));
+    while (true);
 }
 
 void DirectoryServer::databasePersistence(boost::shared_ptr<DirectoryServer> directoryServer) {
-    for(;;) {
+    for (;;) {
         std::cout << "saving databases..." << std::endl;
         directoryServer->saveDatabase();
         boost::this_thread::sleep(boost::posix_time::minutes(1));
@@ -57,14 +64,14 @@ void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer)
 
 void DirectoryServer::helloListener(boost::shared_ptr<DirectoryServer> directoryServer) {
     directoryServer->Server::initBroadcast(BROADCAST_PORT);
-    
+
     while (true) {
         Message *message = directoryServer->listenToBroadcasts();
         auto hello = load<Hello>(message->getMessage());
         if (hello.getMessage() == "DoS")
             hello.setMessage("ME");
         Message *reply = directoryServer->Server::saveAndGetMessage(hello, Message::MessageType::Reply,
-                                                                   Message::OperationType::HELLO);
+                                                                    Message::OperationType::HELLO);
         directoryServer->Server::send(reply);
     }
 }
@@ -73,11 +80,12 @@ void DirectoryServer::loadDatabase() {
     std::ifstream in;
     std::string username;
     in.open(databasePath + usersFile);
-    if(in.is_open()) {
+    if (in.is_open()) {
         std::string password;
         while (in >> username >> password) {
             User user = User();
             user.setUsername(username);
+
             user.setPassword(password);
             user.setAuthenticated(false);
             this->users[username] = user;
@@ -85,12 +93,14 @@ void DirectoryServer::loadDatabase() {
     }
     in.close();
     in.open(databasePath + directoryFile);
-    if(in.is_open()) {
+    if (in.is_open()) {
         std::string imageList;
         while (in >> username >> imageList) {
-            std::vector<std::string> images;
-            boost::split(images, imageList, boost::is_any_of(", "));
-            this->users[username].setImages(images);
+            if(imageList != "none") {
+                std::vector<std::string> images;
+                boost::split(images, imageList, boost::is_any_of(", "));
+                this->users[username].setImages(images);
+            }
         }
     }
     in.close();
@@ -99,17 +109,23 @@ void DirectoryServer::loadDatabase() {
 void DirectoryServer::saveDatabase() {
     std::ofstream out;
     out.open(databasePath + usersFile);
-    if(out.is_open())
+    if (out.is_open())
         for (const User &user : this->users | boost::adaptors::map_values) {
             out << user.getUsername() << std::endl << user.getPassword() << std::endl;
         }
     out.close();
 
     out.open(databasePath + directoryFile);
-    if(out.is_open())
+    if (out.is_open())
         for (const User &user : this->users | boost::adaptors::map_values) {
-            std::string imageList = boost::algorithm::join(user.getImages(), ", ");
-            out << user.getUsername()  << std::endl << imageList << std::endl;
+            std::cout << user.getUsername();
+            std::string imageList;
+            if (user.getImages().size() > 0) {
+                imageList = boost::algorithm::join(user.getImages(), ", ");
+            } else {
+                imageList = "none";
+            }
+            out << user.getUsername() << std::endl << imageList << std::endl;
         }
     out.close();
 }
@@ -117,7 +133,6 @@ void DirectoryServer::saveDatabase() {
 bool DirectoryServer::userExists(const std::string &username) {
     return this->users.find(username) != this->users.end();
 }
-
 
 bool DirectoryServer::authorize(const std::string &username, const std::string &token) {
     return this->users[username].isAuthenticated() && this->users[username].getToken() == token;
@@ -141,7 +156,7 @@ bool DirectoryServer::authenticate(const std::string &username, const std::strin
     return this->userExists(username) && this->users[username].getPassword() == hashedPassword;
 }
 
-void DirectoryServer::handleRequest(Message* message, boost::shared_ptr<DirectoryServer> directoryServer) {
+void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<DirectoryServer> directoryServer) {
     switch (message->getMessageType()) {
         case Message::MessageType::Request:
             Message *reply;
@@ -183,12 +198,13 @@ void DirectoryServer::handleRequest(Message* message, boost::shared_ptr<Director
                     break;
                 case Message::OperationType::ECHO:
                     reply = directoryServer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
-                                                              Message::MessageType::Reply,
-                                                              Message::OperationType::ECHO);
+                                                                       Message::MessageType::Reply,
+                                                                       Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::HELLO:
                     reply = directoryServer->Server::saveAndGetMessage(
-                            directoryServer->handleHello(load<Hello>(message->getMessage())), Message::MessageType::Reply,
+                            directoryServer->handleHello(load<Hello>(message->getMessage())),
+                            Message::MessageType::Reply,
                             Message::OperationType::HELLO);
                     break;
                 default:
@@ -248,7 +264,7 @@ LoginReply DirectoryServer::loginUser(const LoginRequest &req) {
         reply.setToken(token);
     } else {
         reply.setFlag(true);
-        reply.setMsg("Incorrect username or password.");
+        reply.setMsg(LOGIN_FAILURE);
     }
 
     return reply;
@@ -286,11 +302,11 @@ RegisterReply DirectoryServer::registerUser(const RegisterRequest &req) {
         this->users[username] = user;
         reply.setRegistered(true);
         reply.setFlag(false);
-        reply.setMsg("User registered successfully.");
+        reply.setMsg(REGISTER_SUCCESS);
     } else {
         reply.setRegistered(false);
         reply.setFlag(true);
-        reply.setMsg("User already exists.");
+        reply.setMsg(USER_EXISTS);
     }
     return reply;
 }
@@ -307,13 +323,13 @@ AddImageReply DirectoryServer::addImage(const AddImageRequest &req) {
                 std::ofstream out;
                 std::string path = THUMBNAILS_DIR + username + "-" + imageName;
                 out.open(path);
-                if(out.is_open()) {
+                if (out.is_open()) {
                     out << req.getThumbnail();
                     out.close();
                     reply.setFlag(false);
                 } else {
                     reply.setFlag(true);
-                    reply.setMsg("Couldnt save thumbnail");
+                    reply.setMsg(THUMBNAIL_SAVE_ERR);
                 }
             } else {
                 reply.setFlag(true);
@@ -366,9 +382,10 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
     if (this->userExists(username)) {
         if (this->authorize(username, token)) {
             for (const User &user : this->users | boost::adaptors::map_values) {
-                if(user.getUsername() != username) {
+                if (user.getUsername() != username) {
                     for (const std::string &image : user.getImages()) {
-                        if(index < req.getLastIndex()) {
+                        if (index < req.getLastIndex()) {
+                            index++;
                             continue;
                         }
                         std::ifstream in;
@@ -399,8 +416,6 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
 DirectoryServer::~DirectoryServer() {
     this->saveDatabase();
 }
-
-
 
 const std::string &DirectoryServer::User::getUsername() const {
     return username;

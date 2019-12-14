@@ -326,9 +326,14 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         } else {
                             auto feedReply = load<FeedReply>(reply->getMessage());
                             if (!feedReply.isFlag()) {
-                                std::cout << "AddImage Reply: " << !feedReply.isFlag() << std::endl;
+                                std::ofstream out;
+                                out.open("khloud.jpg");
+                                out << feedReply.getImages().at("khloud");
+                                out.close();
+
+                                std::cout << "Feed Reply: " << !feedReply.isFlag() << std::endl;
                             } else {
-                                std::cout << "AddImage Reply: " << feedReply.getMsg() << std::endl;
+                                std::cout << "Feed Reply: " << feedReply.getMsg() << std::endl;
                             }
                         }
                     }
@@ -548,7 +553,7 @@ std::string Peer::createThumbnail(const std::string &imagePath) {
 //    if(pathList[1] == "jpeg" || pathList[1] == "jpg") {
     bg::rgb8_image_t img;
     bg::read_image(imagePath, img, bg::jpeg_tag{});
-    bg::rgb8_image_t square100(250, 250);
+    bg::rgb8_image_t square100(13583, 5417);
     bg::resize_view(bg::const_view(img), bg::view(square100), bg::bilinear_sampler{});
     bg::write_view("resize.jpg", bg::const_view(square100), bg::jpeg_tag{});
     std::ifstream in;
