@@ -20,7 +20,8 @@ Peer::Peer(const std::string &hostname, int port, const std::string &directorySe
     this->directoryServerPort = directoryServerPort;
 }
 
-Peer::Peer(const std::string &listenHostname, int listenPort) : Server(listenHostname, listenPort), listenHostname(listenHostname) {
+Peer::Peer(const std::string &listenHostname, int listenPort) : Server(listenHostname, listenPort) {
+    this->listenHostname = listenHostname;
     this->listenPort = listenPort;
     token = "";
     username = "";
@@ -427,7 +428,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                             auto searchReply = load<SearchReply>(reply->getMessage());
                             if (!searchReply.isFlag()) {
                                 peer->setAuthenticated(true);
-                                std::cout << "Search Reply: " << !searchReply.isFlag() << std::endl;
+                                std::cout << "Search Reply: " << searchReply.getAddress() <<  "  |  "  << searchReply.getPort() << std::endl;
                             } else {
                                 peer->setAuthenticated(false);
                                 std::cout << "search Reply: " << searchReply.getMsg() << std::endl;
