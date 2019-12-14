@@ -698,8 +698,13 @@ void Peer::authHello(boost::shared_ptr<Peer> peer) {
         peer->connectToDoS();
         Message *message = peer->Client::saveAndGetMessage(hello, Message::MessageType::Request,
                                                            Message::OperationType::AUTH_HELLO);
-        peer->Client::send(message);
-        boost::this_thread::sleep(boost::posix_time::milliseconds(750));
+        if (peer->Client::send(message)) {
+            Message *reply = peer->Client::receiveWithTimeout();
+            if (reply != nullptr) {
+                Ack echoReply = load<Ack>(reply->getMessage());
+            }
+        }
+        boost::this_thread::sleep(boost::posix_time::minutes(1));
     }
 }
 

@@ -210,7 +210,7 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->handleAuthHello(load<AuthenticatedHello>(message->getMessage())),
                             Message::MessageType::Reply,
-                            Message::OperationType::HELLO);
+                            Message::OperationType::ACK);
                     break;
                 default:
                     break;

@@ -55,16 +55,10 @@ bool Client::awaitAck() {
         std::cout << "Server timed out" << std::endl;
         return false;
     } else {
-        {
-            Ack message = load<Ack>(Message(reply).getMessage());
-            std::cout << message.getFragmentId() << std::endl;
-        }
-        if (true) {
-            std::cout << "ACK RECEIVED" << std::endl;
-            return true;
-        } else {
-            return awaitAck();
-        }
+        Ack message = load<Ack>(Message(reply).getMessage());
+        std::cout << message.getFragmentId() << std::endl;
+        std::cout << "ACK RECEIVED" << std::endl;
+        return true;
     }
 }
 
@@ -89,8 +83,10 @@ bool Client::broadcast(Message *_message) {
 
 Message *Client::receiveWithBlock() {
     std::map<int, Message *> msgs;
-    char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
     Message *fragment = nullptr;
+    char *reply = static_cast<char *>(malloc(MAX_READ_MESSAGE_SIZE));
+
+
     do {
         this->udpSocket->readFromSocketWithBlock(reply, MAX_READ_MESSAGE_SIZE);
         fragment = new Message(reply);
