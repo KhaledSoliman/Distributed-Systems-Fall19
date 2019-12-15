@@ -36,6 +36,7 @@ public:
         REMOVE_VIEWER,
         GET_REQUESTS,
         GET_PENDING_REQUESTS,
+        GET_REMAINING_VIEWS,
         UPDATE_VIEW_LIMIT,
         AUTH_HELLO,
         SHOW_ONLINE,

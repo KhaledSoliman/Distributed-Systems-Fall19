@@ -411,6 +411,60 @@ namespace MessageStructures {
             }
         };
 
+        //  Download Image
+        struct GetRemainingViewsRequest : public Authentication::AuthRequest {
+        private:
+            std::string image_name;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & image_name;
+            }
+
+        public:
+            const std::string &getImageName() const {
+                return image_name;
+            }
+
+            void setImageName(const std::string &imageName) {
+                image_name = imageName;
+            }
+
+        };
+
+        struct GetRemainingViewsReply : public Control::Error {
+        private:
+            std::string imageName;
+            int viewNum;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & imageName & viewNum;
+            }
+        public:
+            const std::string &getImageName() const {
+                return imageName;
+            }
+
+            void setImageName(const std::string &imageName) {
+                GetRemainingViewsReply::imageName = imageName;
+            }
+
+            int getViewNum() const {
+                return viewNum;
+            }
+
+            void setViewNum(int viewNum) {
+                GetRemainingViewsReply::viewNum = viewNum;
+            }
+        };
+
         // View Image
         struct ViewImageRequest : public Authentication::AuthRequest {
         private:
@@ -986,7 +1040,10 @@ OBJECT_SERIALIZATION(GetPendingRequestsReply)
 OBJECT_SERIALIZATION(ViewImageRequest)
 //Directory Service Hello
 OBJECT_SERIALIZATION(ViewImageReply)
-
+//Directory Service Hello
+OBJECT_SERIALIZATION(GetRemainingViewsRequest)
+//Directory Service Hello
+OBJECT_SERIALIZATION(GetRemainingViewsReply)
 //Register
 OBJECT_SERIALIZATION(RegisterRequest)
 

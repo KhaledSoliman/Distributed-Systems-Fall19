@@ -8,7 +8,7 @@
 #include <boost/date_time/posix_time/time_serialize.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
-#define CACHE_DIR "/home/mobsella/CLionProjects/Distributed-Systems-Fall19/cache/"
+#define CACHE_DIR "/Users/snappy/CLionProjects/Distributed-Systems-Fall19/cache/"
 #define TIMEOUT 72
 #define PASSWORD "UNO,DOS,TRES"
 
@@ -22,21 +22,31 @@ Cache::~Cache() {
 
 }
 
-void Cache::insertImage(const std::string &image, const std::string &imageName, const ImageBody &imageBody) {
+void Cache::insertImage(const std::string& viewerName, const std::string &image, const std::string &imageName, const ImageBody &imageBody) {
     std::string serialized = boost::beast::detail::base64_encode(save<ImageBody>(imageBody));
-    std::string imagePath = CACHE_DIR + imageName;
+    std::string imagePath = CACHE_DIR + viewerName + "-" + imageName;
     std::ofstream out;
     out.open(imagePath);
     out << image;
     out.close();
-    std::string textPath = CACHE_DIR + imageName + ".txt";
+    std::string textPath = imagePath + ".txt";
     Seng::stringToImage(imagePath, textPath, serialized, PASSWORD);
 }
 
-void Cache::updateImage(const std::string &imageName, const ImageBody &imageBody) {
+std::string Cache::getImage(const std::string viewerName, const std::string &imageName) {
+    std::ifstream in;
+    std::string path = CACHE_DIR + viewerName + "-" + imageName;
+    in.open(path);
+    std::string image((std::istreambuf_iterator<char>(in)),
+                     std::istreambuf_iterator<char>());
+    in.close();
+    return image;
+}
+
+void Cache::updateImage(const std::string& viewerName, const std::string &imageName, const ImageBody &imageBody) {
     std::string serialized = boost::beast::detail::base64_encode(save<ImageBody>(imageBody));
-    std::string imagePath = CACHE_DIR + imageName;
-    std::string textPath = CACHE_DIR + imageName + ".txt";
+    std::string imagePath = CACHE_DIR + viewerName + "-" + imageName;
+    std::string textPath = imagePath + ".txt";
     Seng::stringToImage(imagePath, textPath, serialized, PASSWORD);
 }
 
@@ -59,4 +69,19 @@ void Cache::updateCache() const {
         }
     }
 }
+
+ImageBody Cache::getImageBody(const std::string viewerName, const std::string &imageName) {
+    std::string imagePath = CACHE_DIR + viewerName + "-" + imageName;
+    return ImageBody(Seng::imageToString(imagePath, PASSWORD));
+}
+
+void Cache::insertImage(const std::string &viewerName, const std::string &image, const std::string &imageName) {
+    std::string imagePath = CACHE_DIR + viewerName + "-" + imageName;
+    std::ofstream out;
+    out.open(imagePath);
+    out << image;
+    out.close();
+}
+
+
 

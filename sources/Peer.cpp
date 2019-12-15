@@ -1,5 +1,6 @@
 #include "../headers/Peer.h"
 #include "../headers/MessageStructures.h"
+#include "../headers/Seng.h"
 
 #include <boost/gil.hpp>
 #include <boost/gil/extension/io/jpeg.hpp>
@@ -164,35 +165,36 @@ void Peer::listen(boost::shared_ptr<Peer> peer) {
 void Peer::handleRequest(Message *message, boost::shared_ptr<Peer> peer) {
     switch (message->getMessageType()) {
         case Message::MessageType::Request:
+            Message *reply;
             switch (message->getOperation()) {
                 case Message::OperationType::ECHO:
-                    peer->Server::saveAndGetMessage(load<Echo>(message->getMessage()), Message::MessageType::Reply,
-                                                    Message::OperationType::ECHO);
+                    reply = peer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
+                                                            Message::MessageType::Reply,
+                                                            Message::OperationType::ECHO);
                     break;
                 case Message::OperationType::DOWNLOAD_IMAGE:
-                    peer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
-                                                    Message::MessageType::Reply,
-                                                    Message::OperationType::DOWNLOAD_IMAGE);
-                    break;
-                case Message::OperationType::VIEW_IMAGE:
-                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()),
-                                                    Message::MessageType::Reply,
-                                                    Message::OperationType::ADD_VIEWER);
-                    break;
-                case Message::OperationType::ADD_VIEWER:
-                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()),
-                                                    Message::MessageType::Reply,
-                                                    Message::OperationType::ADD_VIEWER);
+                    reply = peer->Server::saveAndGetMessage(
+                            peer->sendImage(load<DownloadImageRequest>(message->getMessage())),
+                            Message::MessageType::Reply,
+                            Message::OperationType::DOWNLOAD_IMAGE);
                     break;
                 case Message::OperationType::REMOVE_VIEWER:
-                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()),
-                                                    Message::MessageType::Reply,
-                                                    Message::OperationType::ADD_VIEWER);
+                    reply = peer->Server::saveAndGetMessage(
+                            peer->removeViewer(load<RemoveViewerRequest>(message->getMessage())),
+                            Message::MessageType::Reply,
+                            Message::OperationType::REMOVE_VIEWER);
                     break;
                 case Message::OperationType::UPDATE_VIEW_LIMIT:
-                    peer->Server::saveAndGetMessage(load<AddViewerRequest>(message->getMessage()),
-                                                    Message::MessageType::Reply,
-                                                    Message::OperationType::ADD_VIEWER);
+                    reply = peer->Server::saveAndGetMessage(
+                            peer->updateLimit(load<UpdateLimitRequest>(message->getMessage())),
+                            Message::MessageType::Reply,
+                            Message::OperationType::UPDATE_VIEW_LIMIT);
+                    break;
+                case Message::OperationType::GET_REMAINING_VIEWS:
+                    reply = peer->Server::saveAndGetMessage(
+                            peer->getRemainingViews(load<GetRemainingViewsRequest>(message->getMessage())),
+                            Message::MessageType::Reply,
+                            Message::OperationType::GET_REMAINING_VIEWS);
                     break;
                 default:
                     break;
@@ -256,6 +258,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
         GetPendingRequests,
         DownloadImage,
         UpdateLimit,
+        RemoveViewer,
         GetOtherRemainingViews,
         GetMyRemainingViews
     };
@@ -334,8 +337,9 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                       << "12) Show pending requests." << std::endl
                       << "13) Download image from peer." << std::endl
                       << "14) Update view limit on image." << std::endl
-                      << "*15) Show remaining views on other's image." << std::endl
-                      << "*16) Show remaining views on my image." << std::endl;
+                      << "15) Remove viewer from image." << std::endl
+                      << "16) Show remaining views on other's image." << std::endl
+                      << "17) Show remaining views on my image." << std::endl;
             std::cin >> peerChoice;
             switch (peerChoice) {
                 case peerChoices::Logout: {
@@ -465,6 +469,8 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     } else {
                         auto delImageReply = load<DeleteImageReply>(reply->getMessage());
                         if (!delImageReply.isFlag()) {
+                            std::string path = IMAGE_DIR + imageName;
+                            remove(path.c_str());
                             std::cout << "DeleteImage Reply: " << !delImageReply.isFlag() << std::endl;
                         } else {
                             std::cout << "DeleteImage Reply: " << delImageReply.getMsg() << std::endl;
@@ -628,6 +634,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     } else {
                         auto downloadImageReply = load<DownloadImageReply>(reply->getMessage());
                         if (!downloadImageReply.isFlag()) {
+                            peer->myCache.insertImage(username, downloadImageReply.getImage(), imageName);
                             std::cout << "Download Reply: " << !downloadImageReply.isFlag() << std::endl;
                         } else {
                             std::cout << "download Reply: " << downloadImageReply.getMsg() << std::endl;
@@ -653,57 +660,66 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     } else {
                         auto updateLimitReply = load<UpdateLimitReply>(reply->getMessage());
                         if (!updateLimitReply.isFlag()) {
-                            std::cout << "Download Reply: " << !updateLimitReply.isFlag() << std::endl;
+                            std::cout << "Update Limit Reply: " << !updateLimitReply.isFlag() << std::endl;
                         } else {
-                            std::cout << "download Reply: " << updateLimitReply.getMsg() << std::endl;
+                            std::cout << "Update Limit Reply: " << updateLimitReply.getMsg() << std::endl;
+                        }
+                    }
+                }
+                    break;
+                case peerChoices::RemoveViewer: {
+                    std::string imageName, username;
+                    std::cout << "Enter target username:" << std::endl;
+                    std::cin >> username;
+                    std::cout << "Enter Image Name: " << std::endl;
+                    std::cin >> imageName;
+                    auto *reply = peer->sendPeer(
+                            peer->Client::saveAndGetMessage(peer->removeViewer(imageName, username),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::REMOVE_VIEWER), username);
+                    if (reply == nullptr) {
+                        std::cout << "Peer didn't respond" << std::endl;
+                    } else {
+                        auto updateLimitReply = load<RemoveViewerReply>(reply->getMessage());
+                        if (!updateLimitReply.isFlag()) {
+                            std::cout << "Remove Viewer Reply: " << !updateLimitReply.isFlag() << std::endl;
+                        } else {
+                            std::cout << "Remove Viewer Reply: " << updateLimitReply.getMsg() << std::endl;
                         }
                     }
                 }
                     break;
                 case peerChoices::GetOtherRemainingViews: {
-                    std::string imageName;
+                    std::string imageName, username;
+                    std::cout << "Please enter username" << std::endl;
+                    std::cin >> username;
                     std::cout << "Please input image name" << std::endl;
                     std::cin >> imageName;
-                    Message *message = peer->Client::saveAndGetMessage(peer->downloadImage(imageName),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::DOWNLOAD_IMAGE);
-                    peer->connectToDoS();
-                    if (peer->Client::send(message)) {
-                        Message *reply = peer->Client::receiveWithTimeout();
-                        if (reply == nullptr) {
-                            std::cout << "DoS didn't respond" << std::endl;
+                    auto *reply = peer->sendPeer(
+                            peer->Client::saveAndGetMessage(peer->getRemainingViews(imageName, username),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::GET_REMAINING_VIEWS), username);
+
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto downloadImageReply = load<GetRemainingViewsReply>(reply->getMessage());
+                        if (!downloadImageReply.isFlag()) {
+                            std::cout << "Remaining Views: " << downloadImageReply.getViewNum() << std::endl;
+                            std::cout << "Get Remaining Views Reply: " << !downloadImageReply.isFlag() << std::endl;
                         } else {
-                            auto downloadImageReply = load<DownloadImageReply>(reply->getMessage());
-                            if (!downloadImageReply.isFlag()) {
-                                std::cout << "Download Reply: " << !downloadImageReply.isFlag() << std::endl;
-                            } else {
-                                std::cout << "download Reply: " << downloadImageReply.getMsg() << std::endl;
-                            }
+                            std::cout << "Get Remaining Views Reply: " << downloadImageReply.getMsg() << std::endl;
                         }
                     }
                 }
                     break;
                 case peerChoices::GetMyRemainingViews: {
-                    std::string imageName;
+                    std::string imageName, ownerName;
+                    std::cout << "Please input owner name" << std::endl;
+                    std::cin >> ownerName;
                     std::cout << "Please input image name" << std::endl;
                     std::cin >> imageName;
-                    Message *message = peer->Client::saveAndGetMessage(peer->downloadImage(imageName),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::DOWNLOAD_IMAGE);
-                    peer->connectToDoS();
-                    if (peer->Client::send(message)) {
-                        Message *reply = peer->Client::receiveWithTimeout();
-                        if (reply == nullptr) {
-                            std::cout << "DoS didn't respond" << std::endl;
-                        } else {
-                            auto downloadImageReply = load<DownloadImageReply>(reply->getMessage());
-                            if (!downloadImageReply.isFlag()) {
-                                std::cout << "Download Reply: " << !downloadImageReply.isFlag() << std::endl;
-                            } else {
-                                std::cout << "download Reply: " << downloadImageReply.getMsg() << std::endl;
-                            }
-                        }
-                    }
+                    std::cout << "# of views left:" << peer->getMyRemainingViews(imageName, ownerName) << std::endl;
                 }
                     break;
                 default:
@@ -1004,7 +1020,7 @@ AddViewerRequest Peer::acceptRequest(const std::string &imageName, const std::st
         ImageBody imageBody = ImageBody(this->username, viewerName, viewNum);
         std::string image((std::istreambuf_iterator<char>(in)),
                           std::istreambuf_iterator<char>());
-        myCache.insertImage(image, imageName, imageBody);
+        myCache.insertImage(viewerName, image, imageName, imageBody);
     }
     in.close();
     request.setImageName(imageName);
@@ -1044,6 +1060,52 @@ const Cache &Peer::getMyCache() const {
 
 void Peer::setMyCache(const Cache &myCache) {
     Peer::myCache = myCache;
+}
+
+DownloadImageReply Peer::sendImage(DownloadImageRequest req) {
+    DownloadImageReply reply = DownloadImageReply();
+    std::string image = this->myCache.getImage(req.getUserName(), req.getImageName());
+    reply.setImageName(req.getImageName());
+    reply.setImage(image);
+    reply.setFlag(false);
+    return reply;
+}
+
+UpdateLimitReply Peer::updateLimit(UpdateLimitRequest req) {
+    UpdateLimitReply reply = UpdateLimitReply();
+    ImageBody imageBody = this->myCache.getImageBody(req.getUserName(), req.getName());
+    imageBody.setRemainingViews(req.getNewLimit());
+    myCache.updateImage(req.getUserName(), req.getName(), imageBody);
+    reply.setFlag(false);
+    return reply;
+}
+
+RemoveViewerReply Peer::removeViewer(RemoveViewerRequest req) {
+    RemoveViewerReply reply = RemoveViewerReply();
+    this->myCache.removeImage(req.getUserName() + "-" + req.getImageName());
+    reply.setFlag(false);
+    return reply;
+}
+
+GetRemainingViewsReply Peer::getRemainingViews(GetRemainingViewsRequest req) {
+    GetRemainingViewsReply reply = GetRemainingViewsReply();
+    reply.setImageName(req.getImageName());
+    reply.setViewNum(this->myCache.getImageBody(req.getUserName(), req.getImageName()).getRemainingViews());
+    reply.setFlag(false);
+    return reply;
+}
+
+int Peer::getMyRemainingViews(const std::string &imageName, const std::string &username) {
+    return this->myCache.getImageBody(username, imageName).getRemainingViews();
+}
+
+RemoveViewerRequest Peer::getRemainingViews(const std::string &imageName, const std::string &username) {
+    RemoveViewerRequest request = RemoveViewerRequest();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageName(imageName);
+    request.setToRemove(username);
+    return request;
 }
 
 

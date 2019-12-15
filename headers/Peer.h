@@ -73,6 +73,8 @@ public:
 
     RemoveViewerRequest removeViewer(const std::string &imageName, const std::string &username);
 
+    RemoveViewerRequest getRemainingViews(const std::string &imageName, const std::string &username);
+
     SearchRequest searchUser(const std::string &username);
 
     LoginRequest loginUser(const std::string &password);
@@ -98,6 +100,16 @@ public:
     DenyViewerRequest denyRequest(const std::string& imageName, const std::string& viewerName, int viewNum);
 
     GetPendingRequests getPendingRequests();
+
+    DownloadImageReply sendImage(DownloadImageRequest req);
+
+    UpdateLimitReply updateLimit(UpdateLimitRequest req);
+
+    RemoveViewerReply removeViewer(RemoveViewerRequest req);
+
+    GetRemainingViewsReply getRemainingViews(GetRemainingViewsRequest req);
+
+    int getMyRemainingViews(const std::string& imageName, const std::string& username);
 
     bool isDoSOnline() const;
 

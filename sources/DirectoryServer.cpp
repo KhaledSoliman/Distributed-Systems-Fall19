@@ -224,12 +224,17 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->acceptRequest(load<AddViewerRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::ADD_VIEWER);
-
+                    break;
                 case Message::OperationType::DENY_VIEWER:
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->denyRequest(load<DenyViewerRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::DENY_VIEWER);
-
+                    break;
+                case Message::OperationType::GET_REQUESTS:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->getRequests(load<GetRequests>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::GET_REQUESTS);
+                    break;
                 case Message::OperationType::GET_PENDING_REQUESTS:
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->getPendingRequests(load<GetPendingRequests>(message->getMessage())),
@@ -624,7 +629,7 @@ AddViewerReply DirectoryServer::acceptRequest(const AddViewerRequest &req) {
                     break;
                 }
             }
-            this->users[username].removeRequest(i);
+            this->users[username].removeRequest(i-1);
             reply.setFlag(false);
         } else {
             reply.setFlag(true);
@@ -652,7 +657,7 @@ DenyViewerReply DirectoryServer::denyRequest(const DenyViewerRequest &req) {
                     break;
                 }
             }
-            this->users[username].removeRequest(i);
+            this->users[username].removeRequest(i-1);
             reply.setFlag(false);
         } else {
             reply.setFlag(true);
