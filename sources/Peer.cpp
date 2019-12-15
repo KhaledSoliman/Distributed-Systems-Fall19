@@ -356,6 +356,10 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     } else {
                         auto showOnlineReply = load<ShowOnlineReply>(reply->getMessage());
                         if (!showOnlineReply.isFlag()) {
+                            std::cout << "Online Users:" << std::endl;
+                            for(const std::string& username :showOnlineReply.getUsers()) {
+                                std::cout << username << " is Online." << std::endl;
+                            }
                             std::cout << "Show Online Reply: " << !showOnlineReply.isFlag() << std::endl;
                         } else {
                             std::cout << "Show Online Reply: " << showOnlineReply.getMsg() << std::endl;

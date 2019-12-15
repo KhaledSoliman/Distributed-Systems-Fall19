@@ -59,7 +59,7 @@ void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer)
         Message *message = directoryServer->Server::receive();
         std::cout << "Recieved: " << message->getOperation() << std::endl;
         boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
-        if (message->getOperation() == Message::OperationType::FEED)
+        if (message->getOperation() == Message::OperationType::FEED || message->getOperation() == Message::OperationType::FEED_PROFILE)
             boost::this_thread::sleep(boost::posix_time::seconds(12));
     }
 }
@@ -508,9 +508,10 @@ FeedProfileReply DirectoryServer::feedProfile(const FeedProfileRequest &req) {
                 reply.setTargetUsername(targetUsername);
                 reply.setImages(thumbnails);
                 reply.setCurrentIndex(index);
+            } else {
+                reply.setFlag(true);
+                reply.setMsg("Cannot feed yourself.");
             }
-            reply.setFlag(true);
-            reply.setMsg("Cannot feed yourself.");
         } else {
             reply.setFlag(true);
             reply.setMsg(ERROR_AUTH);
