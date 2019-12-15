@@ -385,6 +385,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                                 out << image.second.second;
                                 out.close();
                             }
+                            peer->setFeedIndex(feedReply.getCurrentIndex());
                             std::cout << "Feed Reply: " << !feedReply.isFlag() << std::endl;
                         } else {
                             std::cout << "Feed Reply: " << feedReply.getMsg() << std::endl;
@@ -413,6 +414,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                                 out << image.second;
                                 out.close();
                             }
+                            peer->addProfileIndex(feedReply.getTargetUsername(), feedReply.getCurrentIndex());
                             std::cout << "Feed Profile Reply: " << !feedReply.isFlag() << std::endl;
                         } else {
                             std::cout << "Feed Profile Reply: " << feedReply.getMsg() << std::endl;
@@ -891,6 +893,10 @@ ViewImageRequest Peer::viewImage(const std::string& username, const std::string 
     request.setImageName(imageName);
     request.setViewNum(viewNum);
     return request;
+}
+
+void Peer::addProfileIndex(const std::string &username, int index) {
+    this->profileIndices[username] = index;
 }
 
 

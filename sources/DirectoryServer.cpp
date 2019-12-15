@@ -61,7 +61,7 @@ void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer)
         boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
         if (message->getOperation() == Message::OperationType::FEED ||
             message->getOperation() == Message::OperationType::FEED_PROFILE)
-            boost::this_thread::sleep(boost::posix_time::seconds(12));
+            boost::this_thread::sleep(boost::posix_time::seconds(5));
     }
 }
 
@@ -87,10 +87,8 @@ void DirectoryServer::loadDatabase() {
         std::string line;
         std::string password;
         while (std::getline(in, line) && !line.empty()) {
-            std::cout << line << std::endl;
             std::stringstream lineStream(line);
             while (lineStream >> username >> password) {
-                std::cout << username << std::endl << password << std::endl;
                 User user = User();
                 user.setUsername(username);
                 user.setPassword(password);

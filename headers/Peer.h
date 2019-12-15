@@ -143,6 +143,8 @@ public:
 
     void setPeerPort(int peerPort);
 
+    void addProfileIndex(const std::string& username, int index);
+
 };
 
 
