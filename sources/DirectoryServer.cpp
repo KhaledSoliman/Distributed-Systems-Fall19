@@ -86,9 +86,11 @@ void DirectoryServer::loadDatabase() {
     if (in.is_open()) {
         std::string line;
         std::string password;
-        while (std::getline(in, line)) {
+        while (std::getline(in, line) && !line.empty()) {
+            std::cout << line << std::endl;
             std::stringstream lineStream(line);
             while (lineStream >> username >> password) {
+                std::cout << username << std::endl << password << std::endl;
                 User user = User();
                 user.setUsername(username);
                 user.setPassword(password);
@@ -102,12 +104,12 @@ void DirectoryServer::loadDatabase() {
     if (in.is_open()) {
         std::string imageList;
         std::string line;
-        while (std::getline(in, line)) {
+        while (std::getline(in, line) && !line.empty()) {
             std::stringstream lineStream(line);
             while (lineStream >> username >> imageList) {
                 if (imageList != "none") {
                     std::vector<std::string> images;
-                    boost::split(images, imageList, boost::is_any_of(", "));
+                    boost::split(images, imageList, boost::is_any_of(","));
                     this->users[username].setImages(images);
                 }
             }
@@ -129,7 +131,7 @@ void DirectoryServer::loadDatabase() {
         if (out.is_open())
             for (const User &user : this->users | boost::adaptors::map_values) {
                 std::string imageList;
-                if (user.getImages().size() > 0) {
+                if (!user.getImages().empty()) {
                     imageList = boost::algorithm::join(user.getImages(), ",");
                 } else {
                     imageList = "none";
