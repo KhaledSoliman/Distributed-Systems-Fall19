@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <boost/range/adaptor/map.hpp>
 #include "../headers/Client.h"
 
 Client::Client() {
@@ -39,7 +40,9 @@ bool Client::send(Message *_message) {
             if (isAcknowledged)
                 i++;
         } while (i < msgs.size());
-
+        for (auto* frag: msgs | boost::adaptors::map_values) {
+            delete frag;
+        }
         return true;
     } else {
         this->udpSocket->writeToSocket(&marshalled[0], marshalled.length());
@@ -60,7 +63,11 @@ bool Client::awaitAck() {
         auto *message = new Message(reply);
         if (message->getOperation() == Message::OperationType::ACK) {
             std::cout << "ACK RECEIVED" << std::endl;
+            delete message;
             return true;
+        } else {
+            delete message;
+            return awaitAck();
         }
     }
 }
@@ -106,6 +113,9 @@ Message *Client::receiveWithBlock() {
         for (auto &msg : msgs) {
             stringHolder += msg.second->getMessage();
         }
+        for (auto* frag: msgs | boost::adaptors::map_values) {
+            delete frag;
+        }
         return new Message(&stringHolder[0]);
     } else {
         return msgs[0];
@@ -138,6 +148,9 @@ Message *Client::receiveWithTimeout() {
         std::string stringHolder;
         for (auto &msg : msgs) {
             stringHolder += msg.second->getMessage();
+        }
+        for (auto* frag: msgs | boost::adaptors::map_values) {
+            delete frag;
         }
         return new Message(&stringHolder[0]);
     } else {

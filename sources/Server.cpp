@@ -1,5 +1,6 @@
 #include <cstring>
 #include <iostream>
+#include <boost/range/adaptor/map.hpp>
 #include "../headers/Message.h"
 #include "../headers/Server.h"
 
@@ -58,7 +59,9 @@ bool Server::send(Message *_message) {
             if (isAcknowledged)
                 i++;
         } while (i < msgs.size());
-
+        for (auto* frag: msgs | boost::adaptors::map_values) {
+            delete frag;
+        }
         return true;
     } else {
         this->udpServerSocket->writeToSocket(&marshalled[0], marshalled.length());
@@ -94,6 +97,9 @@ Message *Server::receive() {
         for (auto &msg : msgs) {
             stringHolder += msg.second->getMessage();
         }
+        for (auto* frag: msgs | boost::adaptors::map_values) {
+            delete frag;
+        }
         return new Message(&stringHolder[0]);
     } else {
         return msgs[0];
@@ -112,7 +118,11 @@ bool Server::awaitAck() {
         auto *message = new Message(reply);
         if (message->getOperation() == Message::OperationType::ACK) {
             std::cout << "ACK RECEIVED" << std::endl;
+            delete message;
             return true;
+        } else {
+            delete message;
+            return awaitAck();
         }
     }
 }
