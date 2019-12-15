@@ -187,4 +187,3 @@ private:
 BOOST_CLASS_TRACKING(Message, boost::serialization::track_always);
 
 #endif //DISTRIBUTED_SYSTEMS_FALL19_MESSAGE_H
-
