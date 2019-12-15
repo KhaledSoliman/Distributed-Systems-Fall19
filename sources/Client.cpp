@@ -40,7 +40,7 @@ bool Client::send(Message *_message) {
             if (isAcknowledged)
                 i++;
         } while (i < msgs.size());
-        for (auto* frag: msgs | boost::adaptors::map_values) {
+        for (auto frag: msgs) {
             delete frag;
         }
         return true;
