@@ -24,12 +24,15 @@ private:
     std::string token;
     bool authenticated;
     int feedIndex;
+    std::map<std::string, int> profileIndices;
     bool DoSOnline;
     bool helloProtocol;
     std::string listenHostname;
     int listenPort;
+    std::string peerHostname;
+    int peerPort;
     Cache myCache;
-    boost::shared_ptr<Peer> peer;
+
 
 public:
     Peer(const std::string &listenHostname, int listenPort);
@@ -56,13 +59,19 @@ public:
 
     bool connectToDoS();
 
-    bool connectToPeer(const std::string& peerHostname, int peerPort);
+    bool connectToPeer();
+
+    Message* sendDoS(Message *message);
+
+    Message* sendPeer(Message *message, const std::string& peerUsername);
 
     bool pingDoS();
 
+    ShowOnlineRequest showOnline();
+
     UpdateLimitRequest updateLimit(const std::string &imageName, const std::string &username, int newLimit);
 
-    AddViewerRequest addViewer(const std::string &imageName, const std::string &username);
+    ViewImageRequest viewImage(const std::string& username, const std::string &imageName, int viewNum);
 
     RemoveViewerRequest removeViewer(const std::string &imageName, const std::string &username);
 
@@ -81,6 +90,8 @@ public:
     DeleteImageRequest delImage(const std::string &imageName);
 
     FeedRequest feed(int imageNum);
+
+    FeedProfileRequest feedProfile(const std::string& username, int imageNum);
 
     GetRequests getRequests();
 
@@ -123,6 +134,14 @@ public:
     int getListenPort() const;
 
     void setListenPort(int listenPort);
+
+    const std::string &getPeerHostname() const;
+
+    void setPeerHostname(const std::string &peerHostname);
+
+    int getPeerPort() const;
+
+    void setPeerPort(int peerPort);
 
 };
 

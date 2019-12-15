@@ -327,6 +327,36 @@ namespace MessageStructures {
         public:
         };
 
+        struct ShowOnlineRequest : public Authentication::AuthRequest {
+        private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+            }
+        public:
+        };
+    struct ShowOnlineReply : public Control::Error {
+        private:
+            std::vector<std::string> users;
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & users;
+            }
+        public:
+        const std::vector<std::string> &getUsers() const {
+            return users;
+        }
+
+        void setUsers(const std::vector<std::string> &users) {
+            ShowOnlineReply::users = users;
+        }
+    };
+
         //  Download Image
         struct DownloadImageRequest : public Authentication::AuthRequest {
         private:
@@ -353,28 +383,59 @@ namespace MessageStructures {
 
         struct DownloadImageReply : public Control::Error {
         private:
-        public:
-        };
-
-        // View Image
-        struct ViewImageRequest : public Control::Error {
-        private:
-            std::string userName;
             std::string imageName;
+            std::string image;
 
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
-                ar & boost::serialization::base_object<Control::Error>(*this); //gded
-                ar & userName;
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & imageName;
+            }
+        public:
+            const std::string &getImageName() const {
+                return imageName;
+            }
+
+            void setImageName(const std::string &imageName) {
+                DownloadImageReply::imageName = imageName;
+            }
+
+            const std::string &getImage() const {
+                return image;
+            }
+
+            void setImage(const std::string &image) {
+                DownloadImageReply::image = image;
+            }
+        };
+
+        // View Image
+        struct ViewImageRequest : public Authentication::AuthRequest {
+        private:
+            std::string targetUsername;
+            std::string imageName;
+            int viewNum;
+
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & viewNum;
                 ar & imageName;
             }
 
         public:
-            [[nodiscard]] const std::string &getUserName() const;
+            const std::string &getTargetUsername() const;
 
-            void setUserName(const std::string &userName);
+            void setTargetUsername(const std::string &targetUsername);
+
+            int getViewNum() const;
+
+            void setViewNum(int viewNum);
 
             [[nodiscard]] const std::string &getImageName() const;
 
@@ -383,20 +444,14 @@ namespace MessageStructures {
 
         struct ViewImageReply : public Control::Error {
         private:
-            Image image;
-
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Control::Error>(*this);
-                ar & image;
             }
 
         public:
-            [[nodiscard]] const Image &getImage() const;
-
-            void setImage(const Image &image);
         };
 
         // Delete Image
@@ -543,6 +598,12 @@ namespace MessageStructures {
 
         struct UpdateLimitReply : public Control::Error {
         private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+            }
         public:
         };
 
@@ -573,7 +634,7 @@ namespace MessageStructures {
         struct FeedReply : public Control::Error {
         private:
             int currentIndex;
-            std::unordered_map<std::string, std::string> images;
+            std::unordered_map<std::string, std::pair<std::string, std::string>> images;
 
             friend class boost::serialization::access;
 
@@ -589,29 +650,91 @@ namespace MessageStructures {
 
             void setCurrentIndex(int currentIndex);
 
-            const std::unordered_map<std::string, std::string> &getImages() const;
+            const std::unordered_map<std::string, std::pair<std::string, std::string>> &getImages() const;
 
-            void setImages(const std::unordered_map<std::string, std::string> &images);
+            void setImages(const std::unordered_map<std::string, std::pair<std::string, std::string>> &images);
         };
 
-        struct GetRequestsReply : public Authentication::AuthRequest {
+        struct FeedProfileRequest : public Authentication::AuthRequest {
         private:
-            std::vector<ViewImageRequest> requests;
+            int lastIndex;
+            int imageNum;
+            std::string targetUsername;
 
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
-                ar & requests;
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & imageNum & lastIndex & targetUsername;
+            }
+
+
+        public:
+            int getLastIndex() const {
+                return lastIndex;
+            }
+
+            void setLastIndex(int lastIndex) {
+                FeedProfileRequest::lastIndex = lastIndex;
+            }
+
+            int getImageNum() const {
+                return imageNum;
+            }
+
+            void setImageNum(int imageNum) {
+                FeedProfileRequest::imageNum = imageNum;
+            }
+
+            const std::string &getTargetUsername() const {
+                return targetUsername;
+            }
+
+            void setTargetUsername(const std::string &targetUsername) {
+                FeedProfileRequest::targetUsername = targetUsername;
+            }
+
+        };
+
+        struct FeedProfileReply : public Control::Error {
+        private:
+            std::string targetUsername;
+            int currentIndex;
+            std::vector<std::pair<std::string, std::string>> images;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & currentIndex;
+                ar & images;
             }
 
         public:
-            const std::vector<ViewImageRequest> &getRequests() const {
-                return requests;
+            int getCurrentIndex() const {
+                return currentIndex;
             }
 
-            void setRequests(const std::vector<ViewImageRequest> &requests) {
-                GetRequestsReply::requests = requests;
+            void setCurrentIndex(int currentIndex) {
+                FeedProfileReply::currentIndex = currentIndex;
+            }
+
+            const std::vector<std::pair<std::string, std::string>> &getImages() const {
+                return images;
+            }
+
+            void setImages(const std::vector<std::pair<std::string, std::string>> &images) {
+                FeedProfileReply::images = images;
+            }
+
+            const std::string &getTargetUsername() const {
+                return targetUsername;
+            }
+
+            void setTargetUsername(const std::string &targetUsername) {
+                FeedProfileReply::targetUsername = targetUsername;
             }
         };
 
@@ -622,7 +745,29 @@ namespace MessageStructures {
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
-                ar;
+            }
+        public:
+        };
+
+        struct GetRequestsReply : public Control::Error {
+        private:
+            std::vector<ViewImageRequest> requests;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & requests;
+            }
+
+        public:
+            const std::vector<ViewImageRequest> &getRequests() const {
+                return requests;
+            }
+
+            void setRequests(const std::vector<ViewImageRequest> &requests) {
+                GetRequestsReply::requests = requests;
             }
         };
 
@@ -650,6 +795,7 @@ namespace MessageStructures {
         private:
             int port;
             std::string address;
+
             friend class boost::serialization::access;
 
             template<class Archive>
@@ -657,6 +803,7 @@ namespace MessageStructures {
                 ar & boost::serialization::base_object<Control::Error>(*this);
                 ar & port & address;
             }
+
         public:
             int getPort() const {
                 return port;
@@ -729,6 +876,22 @@ OBJECT_SERIALIZATION(Hello)
 
 //Directory Service Hello
 OBJECT_SERIALIZATION(AuthenticatedHello)
+//Directory Service Hello
+OBJECT_SERIALIZATION(ShowOnlineRequest)
+//Directory Service Hello
+OBJECT_SERIALIZATION(ShowOnlineReply)
+//Directory Service Hello
+OBJECT_SERIALIZATION(FeedProfileRequest)
+//Directory Service Hello
+OBJECT_SERIALIZATION(FeedProfileReply)
+//Directory Service Hello
+OBJECT_SERIALIZATION(GetRequests)
+//Directory Service Hello
+OBJECT_SERIALIZATION(GetRequestsReply)
+//Directory Service Hello
+OBJECT_SERIALIZATION(ViewImageRequest)
+//Directory Service Hello
+OBJECT_SERIALIZATION(ViewImageReply)
 
 //Register
 OBJECT_SERIALIZATION(RegisterRequest)

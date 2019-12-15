@@ -84,10 +84,13 @@ private:
         void delImage(const std::string& imageName);
 
         void addRequest(MessageStructures::User::ViewImageRequest request);
+
+        const std::vector<MessageStructures::User::ViewImageRequest> &getImageRequests() const;
+
+        void setRequests(const std::vector<MessageStructures::User::ViewImageRequest> &requests);
     };
 
     std::unordered_map<std::string, User> users;
-    std::unordered_map<std::string, User> onlineUsers;
     std::string hostname;
     int port;
     std::string databasePath;
@@ -133,13 +136,21 @@ public:
 
     LogoutReply logoutUser(const LogoutRequest& req);
 
+    ShowOnlineReply showOnline(const ShowOnlineRequest& req);
+
+    FeedReply feed(const FeedRequest& req);
+
+    FeedProfileReply feedProfile(const FeedProfileRequest& req);
+
     RegisterReply registerUser(const RegisterRequest& req);
 
     AddImageReply addImage(const AddImageRequest& req);
 
     DeleteImageReply delImage(const DeleteImageRequest& req);
 
-    FeedReply feed(const FeedRequest& req);
+    ViewImageReply viewImage(const ViewImageRequest& req);
+
+    GetRequestsReply getRequests(const GetRequests& req);
 
     ~DirectoryServer();
 };

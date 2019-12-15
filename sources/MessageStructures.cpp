@@ -118,15 +118,6 @@ const std::string &AddImageRequest::getThumbnail() const {
 void AddImageRequest::setThumbnail(const std::string &thumbnail) {
     this->thumbnail = thumbnail;
 }
-
-const std::string &ViewImageRequest::getUserName() const {
-    return userName;
-}
-
-void ViewImageRequest::setUserName(const std::string &userName) {
-    this->userName = userName;
-}
-
 const std::string &ViewImageRequest::getImageName() const {
     return imageName;
 }
@@ -135,12 +126,20 @@ void ViewImageRequest::setImageName(const std::string &imageName) {
     this->imageName = imageName;
 }
 
-const Image &ViewImageReply::getImage() const {
-    return image;
+int ViewImageRequest::getViewNum() const {
+    return viewNum;
 }
 
-void ViewImageReply::setImage(const Image &image) {
-    this->image = image;
+void ViewImageRequest::setViewNum(int viewNum) {
+    ViewImageRequest::viewNum = viewNum;
+}
+
+const std::string &ViewImageRequest::getTargetUsername() const {
+    return targetUsername;
+}
+
+void ViewImageRequest::setTargetUsername(const std::string &targetUsername) {
+    ViewImageRequest::targetUsername = targetUsername;
 }
 
 const std::string &DeleteImageRequest::getUserName1() const {
@@ -263,11 +262,11 @@ void FeedReply::setCurrentIndex(int currentIndex) {
     FeedReply::currentIndex = currentIndex;
 }
 
-const std::unordered_map<std::string, std::string> &FeedReply::getImages() const {
+const std::unordered_map<std::string, std::pair<std::string, std::string>> &FeedReply::getImages() const {
     return images;
 }
 
-void FeedReply::setImages(const std::unordered_map<std::string, std::string> &images) {
+void FeedReply::setImages(const std::unordered_map<std::string, std::pair<std::string, std::string>> &images) {
     FeedReply::images = images;
 }
 

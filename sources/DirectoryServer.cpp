@@ -59,7 +59,7 @@ void DirectoryServer::listen(boost::shared_ptr<DirectoryServer> directoryServer)
         Message *message = directoryServer->Server::receive();
         std::cout << "Recieved: " << message->getOperation() << std::endl;
         boost::thread serverThread(&DirectoryServer::handleRequest, message, directoryServer);
-        if(message->getOperation() == Message::OperationType::FEED)
+        if (message->getOperation() == Message::OperationType::FEED)
             boost::this_thread::sleep(boost::posix_time::seconds(12));
     }
 }
@@ -177,10 +177,20 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                             directoryServer->logoutUser(load<LogoutRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::LOGOUT);
                     break;
+                case Message::OperationType::SHOW_ONLINE:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->showOnline(load<ShowOnlineRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::SHOW_ONLINE);
+                    break;
                 case Message::OperationType::FEED:
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->feed(load<FeedRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::FEED);
+                    break;
+                case Message::OperationType::FEED_PROFILE:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->feedProfile(load<FeedProfileRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::FEED_PROFILE);
                     break;
                 case Message::OperationType::SEARCH:
                     reply = directoryServer->Server::saveAndGetMessage(
@@ -196,6 +206,16 @@ void DirectoryServer::handleRequest(Message *message, boost::shared_ptr<Director
                     reply = directoryServer->Server::saveAndGetMessage(
                             directoryServer->delImage(load<DeleteImageRequest>(message->getMessage())),
                             Message::MessageType::Reply, Message::OperationType::DELETE_IMAGE);
+                    break;
+                case Message::OperationType::VIEW_IMAGE:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->viewImage(load<ViewImageRequest>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::VIEW_IMAGE);
+                    break;
+                case Message::OperationType::GET_REQUESTS:
+                    reply = directoryServer->Server::saveAndGetMessage(
+                            directoryServer->getRequests(load<GetRequests>(message->getMessage())),
+                            Message::MessageType::Reply, Message::OperationType::GET_REQUESTS);
                     break;
                 case Message::OperationType::ECHO:
                     reply = directoryServer->Server::saveAndGetMessage(load<Echo>(message->getMessage()),
@@ -384,7 +404,7 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
     const std::string &username = req.getUserName();
     const std::string &token = req.getToken();
     int index = 0;
-    std::unordered_map<std::string, std::string> thumbnails;
+    std::unordered_map<std::string, std::pair<std::string, std::string>> thumbnails;
     if (this->userExists(username)) {
         if (this->authorize(username, token)) {
             for (const User &user : this->users | boost::adaptors::map_values) {
@@ -399,7 +419,7 @@ FeedReply DirectoryServer::feed(const FeedRequest &req) {
                         in.open(path);
                         std::string thumbnail((std::istreambuf_iterator<char>(in)),
                                               std::istreambuf_iterator<char>());
-                        thumbnails[user.getUsername()] = thumbnail;
+                        thumbnails[user.getUsername()] = std::pair(image, thumbnail);
                         in.close();
                         index++;
                     }
@@ -433,6 +453,112 @@ Ack DirectoryServer::handleAuthHello(AuthenticatedHello req) {
         }
     }
     return Ack();
+}
+
+ShowOnlineReply DirectoryServer::showOnline(const ShowOnlineRequest &req) {
+    ShowOnlineReply reply = ShowOnlineReply();
+    const std::string &username = req.getUserName();
+    const std::string &token = req.getToken();
+    if (this->userExists(username)) {
+        if (this->authorize(username, token)) {
+            std::vector<std::string> onlineUsers;
+            for (const User &user : this->users | boost::adaptors::map_values) {
+                if (user.getUsername() != username && user.isAuthenticated()) {
+                    onlineUsers.push_back(user.getUsername());
+                }
+            }
+            reply.setFlag(false);
+            reply.setUsers(onlineUsers);
+        } else {
+            reply.setFlag(true);
+            reply.setMsg(ERROR_AUTH);
+        }
+    } else {
+        reply.setFlag(true);
+        reply.setMsg(USER_NOT_FOUND);
+    }
+    return reply;
+}
+
+FeedProfileReply DirectoryServer::feedProfile(const FeedProfileRequest &req) {
+    FeedProfileReply reply = FeedProfileReply();
+    const std::string &username = req.getUserName();
+    const std::string &token = req.getToken();
+    const std::string &targetUsername = req.getTargetUsername();
+    if (this->userExists(username) && this->userExists(targetUsername)) {
+        if (this->authorize(username, token)) {
+            if (targetUsername != username) {
+                std::vector<std::pair<std::string, std::string>> thumbnails;
+                int index = 0;
+                for (const std::string &image : this->users[targetUsername].getImages()) {
+                    if (index < req.getLastIndex()) {
+                        index++;
+                        continue;
+                    }
+                    std::ifstream in;
+                    std::string path = THUMBNAILS_DIR + targetUsername + "-" + image;
+                    in.open(path);
+                    std::string thumbnail((std::istreambuf_iterator<char>(in)),
+                                          std::istreambuf_iterator<char>());
+                    thumbnails.push_back(std::pair(image, thumbnail));
+                    in.close();
+                    index++;
+                }
+                reply.setFlag(false);
+                reply.setTargetUsername(targetUsername);
+                reply.setImages(thumbnails);
+                reply.setCurrentIndex(index);
+            }
+            reply.setFlag(true);
+            reply.setMsg("Cannot feed yourself.");
+        } else {
+            reply.setFlag(true);
+            reply.setMsg(ERROR_AUTH);
+        }
+    } else {
+        reply.setFlag(true);
+        reply.setMsg(USER_NOT_FOUND);
+    }
+    return reply;
+}
+
+ViewImageReply DirectoryServer::viewImage(const ViewImageRequest &req) {
+    ViewImageReply reply = ViewImageReply();
+    const std::string &username = req.getUserName();
+    const std::string &token = req.getToken();
+    const std::string &targetUsername = req.getTargetUsername();
+    if (this->userExists(username) && this->userExists(targetUsername)) {
+        if (this->authorize(username, token)) {
+                this->users[targetUsername].addRequest(req);
+                reply.setFlag(false);
+        } else {
+            reply.setFlag(true);
+            reply.setMsg(ERROR_AUTH);
+        }
+    } else {
+        reply.setFlag(true);
+        reply.setMsg(USER_NOT_FOUND);
+    }
+    return reply;
+}
+
+GetRequestsReply DirectoryServer::getRequests(const GetRequests &req) {
+    GetRequestsReply reply = GetRequestsReply();
+    const std::string &username = req.getUserName();
+    const std::string &token = req.getToken();
+    if (this->userExists(username)) {
+        if (this->authorize(username, token)) {
+                reply.setFlag(false);
+                reply.setRequests(this->users[username].getImageRequests());
+        } else {
+            reply.setFlag(true);
+            reply.setMsg(ERROR_AUTH);
+        }
+    } else {
+        reply.setFlag(true);
+        reply.setMsg(USER_NOT_FOUND);
+    }
+    return reply;
 }
 
 const std::string &DirectoryServer::User::getUsername() const {
@@ -513,6 +639,14 @@ void DirectoryServer::User::addRequest(MessageStructures::User::ViewImageRequest
 
 void DirectoryServer::User::delImage(const std::string &imageName) {
     images.erase(std::find(this->images.begin(), this->images.end(), imageName));
+}
+
+const std::vector<MessageStructures::User::ViewImageRequest> &DirectoryServer::User::getImageRequests() const {
+    return requests;
+}
+
+void DirectoryServer::User::setRequests(const std::vector<MessageStructures::User::ViewImageRequest> &requests) {
+    User::requests = requests;
 }
 
 #pragma clang diagnostic pop
