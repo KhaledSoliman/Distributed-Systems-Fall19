@@ -121,7 +121,7 @@ void DirectoryServer::saveDatabase() {
     if (out.is_open())
         for (const User &user : this->users | boost::adaptors::map_values) {
             std::string imageList;
-            if (user.getImages().size() > 0) {
+            if (!user.getImages().empty()) {
                 imageList = boost::algorithm::join(user.getImages(), ", ");
             } else {
                 imageList = "none";
