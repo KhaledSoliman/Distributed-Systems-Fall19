@@ -6,8 +6,9 @@
 #include "boost/filesystem.hpp"
 #include <boost/foreach.hpp>
 #include <boost/date_time/posix_time/time_serialize.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
-#define CACHE_DIR "/Users/snappy/CLionProjects/Distributed-Systems-Fall19/Cache/"
+#define CACHE_DIR "/home/mobsella/CLionProjects/Distributed-Systems-Fall19/cache/"
 #define TIMEOUT 72
 #define PASSWORD "UNO,DOS,TRES"
 
@@ -22,7 +23,7 @@ Cache::~Cache() {
 }
 
 void Cache::insertImage(const std::string &image, const std::string &imageName, const ImageBody &imageBody) {
-    std::string serialized = save<ImageBody>(imageBody);
+    std::string serialized = boost::beast::detail::base64_encode(save<ImageBody>(imageBody));
     std::string imagePath = CACHE_DIR + imageName;
     std::ofstream out;
     out.open(imagePath);
@@ -33,7 +34,7 @@ void Cache::insertImage(const std::string &image, const std::string &imageName, 
 }
 
 void Cache::updateImage(const std::string &imageName, const ImageBody &imageBody) {
-    std::string serialized = save<ImageBody>(imageBody);
+    std::string serialized = boost::beast::detail::base64_encode(save<ImageBody>(imageBody));
     std::string imagePath = CACHE_DIR + imageName;
     std::string textPath = CACHE_DIR + imageName + ".txt";
     Seng::stringToImage(imagePath, textPath, serialized, PASSWORD);

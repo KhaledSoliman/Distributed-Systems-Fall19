@@ -21,7 +21,7 @@ private:
 
     template<class Archive>
     void serialize(Archive &ar, const unsigned int /* file_version */) {
-        ar & ownerUsername & viewerUsername & remainingViews;
+        ar & ownerUsername & viewerUsername & remainingViews & createdAt & updatedAt;
     }
 
 public:
