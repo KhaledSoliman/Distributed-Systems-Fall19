@@ -391,6 +391,7 @@ namespace MessageStructures {
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & image;
                 ar & imageName;
             }
         public:
