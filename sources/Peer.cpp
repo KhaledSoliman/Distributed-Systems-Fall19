@@ -12,6 +12,8 @@
 
 #define FEED_DIR "../feed/"
 #define PROFILE_DIR "../feed/profile/"
+#define TEMP_DIR "../temp/"
+#define IMAGE_DIR "../images/"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -48,7 +50,7 @@ Message *Peer::sendDoS(Message *message) {
     return this->Client::receiveWithTimeout();
 }
 
-Message *Peer::sendPeer(Message *message, const std::string& peerUsername) {
+Message *Peer::sendPeer(Message *message, const std::string &peerUsername) {
     auto reply = this->sendDoS(this->Client::saveAndGetMessage(this->searchUser(peerUsername),
                                                                Message::MessageType::Request,
                                                                Message::OperationType::SEARCH));
@@ -144,7 +146,8 @@ void Peer::init() {
 
 void Peer::cache(boost::shared_ptr<Peer> peer) {
     while (true) {
-
+        peer->getMyCache().updateCache();
+        boost::this_thread::sleep(boost::posix_time::hours(1));
     }
 }
 
@@ -247,9 +250,12 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
         DeleteImage,
         Search,
         RequestView,
+        GetRequests,
+        AddViewer,
+        DenyViewer,
+        GetPendingRequests,
         DownloadImage,
         UpdateLimit,
-        GetRequests,
         GetOtherRemainingViews,
         GetMyRemainingViews
     };
@@ -322,11 +328,14 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                       << "6) Delete image from directory server." << std::endl
                       << "7) Search username in directory server." << std::endl
                       << "8) Request to view image from peer" << std::endl
-                      << "9) Download image from peer." << std::endl
-                      << "10) Update view limit on image." << std::endl
-                      << "11) Show my requests." << std::endl
-                      << "*12) Show remaining views on other's image." << std::endl
-                      << "*13) Show remaining views on my image." << std::endl;
+                      << "9) Show my requests." << std::endl
+                      << "10) Accept viewer request." << std::endl
+                      << "11) Deny viewer request." << std::endl
+                      << "12) Show pending requests." << std::endl
+                      << "13) Download image from peer." << std::endl
+                      << "14) Update view limit on image." << std::endl
+                      << "*15) Show remaining views on other's image." << std::endl
+                      << "*16) Show remaining views on my image." << std::endl;
             std::cin >> peerChoice;
             switch (peerChoice) {
                 case peerChoices::Logout: {
@@ -357,7 +366,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         auto showOnlineReply = load<ShowOnlineReply>(reply->getMessage());
                         if (!showOnlineReply.isFlag()) {
                             std::cout << "Online Users:" << std::endl;
-                            for(const std::string& username :showOnlineReply.getUsers()) {
+                            for (const std::string &username :showOnlineReply.getUsers()) {
                                 std::cout << username << " is Online." << std::endl;
                             }
                             std::cout << "Show Online Reply: " << !showOnlineReply.isFlag() << std::endl;
@@ -380,7 +389,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         auto feedReply = load<FeedReply>(reply->getMessage());
                         if (!feedReply.isFlag()) {
                             std::ofstream out;
-                            for (const auto& image: feedReply.getImages()) {
+                            for (const auto &image: feedReply.getImages()) {
                                 out.open(FEED_DIR + image.second.first + '-' + image.first);
                                 out << image.second.second;
                                 out.close();
@@ -409,7 +418,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         auto feedReply = load<FeedProfileReply>(reply->getMessage());
                         if (!feedReply.isFlag()) {
                             std::ofstream out;
-                            for (const auto& image: feedReply.getImages()) {
+                            for (const auto &image: feedReply.getImages()) {
                                 out.open(PROFILE_DIR + feedReply.getTargetUsername() + '-' + image.first);
 
                                 out << image.second;
@@ -494,20 +503,114 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     std::cin >> imageName;
                     std::cout << "Enter the number of required Views: " << std::endl;
                     std::cin >> viewNo;
-                    auto *reply = peer->sendDoS(peer->Client::saveAndGetMessage(peer->viewImage(username, imageName, viewNo),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::VIEW_IMAGE));
+                    auto *reply = peer->sendDoS(
+                            peer->Client::saveAndGetMessage(peer->viewImage(username, imageName, viewNo),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::VIEW_IMAGE));
 
-                        if (reply == nullptr) {
-                            std::cout << "DoS didn't respond" << std::endl;
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto viewImageReply = load<ViewImageReply>(reply->getMessage());
+                        if (!viewImageReply.isFlag()) {
+                            std::cout << "View Image Reply: " << !viewImageReply.isFlag() << std::endl;
                         } else {
-                            auto viewImageReply = load<ViewImageReply>(reply->getMessage());
-                            if (!viewImageReply.isFlag()) {
-                                std::cout << "View Image Reply: " << !viewImageReply.isFlag() << std::endl;
-                            } else {
-                                std::cout << "View Image Reply: " << viewImageReply.getMsg() << std::endl;
-                            }
+                            std::cout << "View Image Reply: " << viewImageReply.getMsg() << std::endl;
                         }
+                    }
+                }
+                    break;
+                case peerChoices::GetRequests: {
+                    auto *reply = peer->sendDoS(peer->Client::saveAndGetMessage(peer->getRequests(),
+                                                                                Message::MessageType::Request,
+                                                                                Message::OperationType::GET_REQUESTS));
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto getRequestsReply = load<GetRequestsReply>(reply->getMessage());
+                        if (!getRequestsReply.isFlag()) {
+                            for (const auto &request: getRequestsReply.getRequests()) {
+                                std::cout << "Request From " << request.getUserName() << ":" << std::endl;
+                                std::cout << "Image: " << request.getImageName() << std::endl;
+                                std::cout << "Views: " << request.getViewNum() << std::endl;
+                            }
+                            std::cout << "GetRequest Reply: " << !getRequestsReply.isFlag() << std::endl;
+                        } else {
+                            std::cout << "GetRequest Reply: " << getRequestsReply.getMsg() << std::endl;
+                        }
+                    }
+                }
+                    break;
+                case peerChoices::AddViewer: {
+                    std::string viewerName, imageName;
+                    int viewNum;
+                    std::cout << "Enter viewer username:" << std::endl;
+                    std::cin >> viewerName;
+                    std::cout << "Enter Image Name: " << std::endl;
+                    std::cin >> imageName;
+                    std::cout << "Enter the number of required Views on the specified request: " << std::endl;
+                    std::cin >> viewNum;
+                    auto *reply = peer->sendDoS(
+                            peer->Client::saveAndGetMessage(peer->acceptRequest(imageName, viewerName, viewNum),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::ADD_VIEWER));
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto addViewerReply = load<AddViewerReply>(reply->getMessage());
+                        if (!addViewerReply.isFlag()) {
+                            std::cout << "AddViewer Reply: " << !addViewerReply.isFlag() << std::endl;
+                        } else {
+                            std::cout << "AddViewer Reply: " << addViewerReply.getMsg() << std::endl;
+                        }
+                    }
+                }
+                    break;
+                case peerChoices::DenyViewer: {
+                    std::string viewerName, imageName;
+                    int viewNum;
+                    std::cout << "Enter viewer username:" << std::endl;
+                    std::cin >> viewerName;
+                    std::cout << "Enter Image Name: " << std::endl;
+                    std::cin >> imageName;
+                    std::cout << "Enter the number of required Views on the specified request: " << std::endl;
+                    std::cin >> viewNum;
+                    auto *reply = peer->sendDoS(
+                            peer->Client::saveAndGetMessage(peer->denyRequest(imageName, viewerName, viewNum),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::DENY_VIEWER));
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto denyViewerReply = load<DenyViewerReply>(reply->getMessage());
+                        if (!denyViewerReply.isFlag()) {
+                            std::cout << "DenyViewer Reply: " << !denyViewerReply.isFlag() << std::endl;
+                        } else {
+                            std::cout << "DenyViewer Reply: " << denyViewerReply.getMsg() << std::endl;
+                        }
+                    }
+                }
+                    break;
+                case peerChoices::GetPendingRequests: {
+                    auto *reply = peer->sendDoS(peer->Client::saveAndGetMessage(peer->getPendingRequests(),
+                                                                                Message::MessageType::Request,
+                                                                                Message::OperationType::GET_PENDING_REQUESTS));
+                    if (reply == nullptr) {
+                        std::cout << "DoS didn't respond" << std::endl;
+                    } else {
+                        auto getRequestsReply = load<GetPendingRequestsReply>(reply->getMessage());
+                        if (!getRequestsReply.isFlag()) {
+                            for (const auto &request: getRequestsReply.getRequests()) {
+                                std::cout << "Request From " << request.first.getUserName() << ":" << std::endl;
+                                std::cout << "Image: " << request.first.getImageName() << std::endl;
+                                std::cout << "Views: " << request.first.getViewNum() << std::endl;
+                                std::cout << "Accepted: " << (request.second ? "Yes" : "No") << std::endl;
+                            }
+                            std::cout << "GetRequest Reply: " << !getRequestsReply.isFlag() << std::endl;
+                        } else {
+                            std::cout << "GetRequest Reply: " << getRequestsReply.getMsg() << std::endl;
+                        }
+                    }
                 }
                     break;
                 case peerChoices::DownloadImage: {
@@ -517,8 +620,9 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     std::cout << "Please input image name" << std::endl;
                     std::cin >> imageName;
                     auto *reply = peer->sendPeer(peer->Client::saveAndGetMessage(peer->downloadImage(imageName),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::DOWNLOAD_IMAGE), username);
+                                                                                 Message::MessageType::Request,
+                                                                                 Message::OperationType::DOWNLOAD_IMAGE),
+                                                 username);
                     if (reply == nullptr) {
                         std::cout << "Peer didn't respond" << std::endl;
                     } else {
@@ -540,9 +644,10 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     std::cin >> imageName;
                     std::cout << "Enter the new number of views: " << std::endl;
                     std::cin >> newLimit;
-                    auto *reply = peer->sendPeer(peer->Client::saveAndGetMessage(peer->updateLimit(imageName, username, newLimit),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::UPDATE_VIEW_LIMIT), username);
+                    auto *reply = peer->sendPeer(
+                            peer->Client::saveAndGetMessage(peer->updateLimit(imageName, username, newLimit),
+                                                            Message::MessageType::Request,
+                                                            Message::OperationType::UPDATE_VIEW_LIMIT), username);
                     if (reply == nullptr) {
                         std::cout << "Peer didn't respond" << std::endl;
                     } else {
@@ -551,27 +656,6 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                             std::cout << "Download Reply: " << !updateLimitReply.isFlag() << std::endl;
                         } else {
                             std::cout << "download Reply: " << updateLimitReply.getMsg() << std::endl;
-                        }
-                    }
-                }
-                    break;
-                case peerChoices::GetRequests: {
-                   auto* reply = peer->sendDoS(peer->Client::saveAndGetMessage(peer->getRequests(),
-                                                                       Message::MessageType::Request,
-                                                                       Message::OperationType::GET_REQUESTS));
-                    if (reply == nullptr) {
-                        std::cout << "DoS didn't respond" << std::endl;
-                    } else {
-                        auto getRequestsReply = load<GetRequestsReply>(reply->getMessage());
-                        if (!getRequestsReply.isFlag()) {
-                            for(const auto& request: getRequestsReply.getRequests()) {
-                                std::cout << "Request From " << request.getUserName() << ":" << std::endl;
-                                std::cout << "Image: " << request.getImageName() << std::endl;
-                                std::cout << "Views: " << request.getViewNum() << std::endl;
-                            }
-                            std::cout << "GetRequest Reply: " << !getRequestsReply.isFlag() << std::endl;
-                        } else {
-                            std::cout << "GetRequest Reply: " << getRequestsReply.getMsg() << std::endl;
                         }
                     }
                 }
@@ -682,7 +766,7 @@ AddImageRequest Peer::addImage(const std::string &imagePath, const std::string &
     request.setUserName(this->username);
     request.setToken(this->token);
     request.setImageName(imageName);
-    request.setThumbnail(this->createThumbnail(imagePath));
+    request.setThumbnail(this->createThumbnail(imagePath, imageName));
     return request;
 }
 
@@ -703,20 +787,25 @@ FeedRequest Peer::feed(int imageNum) {
     return request;
 }
 
-std::string Peer::createThumbnail(const std::string &imagePath) {
+std::string Peer::createThumbnail(const std::string &imagePath, const std::string &imageName) {
     namespace bg = boost::gil;
 
 //    std::vector<std::string> pathList;
 //
 //    boost::split(imagePath, pathList, boost::is_any_of("."));
 //    if(pathList[1] == "jpeg" || pathList[1] == "jpg") {
+    std::string temp_path = TEMP_DIR;
+    std::string image_path = IMAGE_DIR;
+    temp_path += "resize.jpg";
+    image_path += imageName;
     bg::rgb8_image_t img;
     bg::read_image(imagePath, img, bg::jpeg_tag{});
     bg::rgb8_image_t square100(250, 250);
     bg::resize_view(bg::const_view(img), bg::view(square100), bg::bilinear_sampler{});
-    bg::write_view("resize.jpg", bg::const_view(square100), bg::jpeg_tag{});
+    bg::write_view(std::string(temp_path), bg::const_view(square100), bg::jpeg_tag{});
+    bg::write_view(std::string(image_path), bg::const_view(img), bg::jpeg_tag{});
     std::ifstream in;
-    in.open("resize.jpg");
+    in.open(temp_path);
     std::string image((std::istreambuf_iterator<char>(in)),
                       std::istreambuf_iterator<char>());
     in.close();
@@ -891,7 +980,7 @@ ShowOnlineRequest Peer::showOnline() {
     return request;
 }
 
-ViewImageRequest Peer::viewImage(const std::string& username, const std::string &imageName, int viewNum) {
+ViewImageRequest Peer::viewImage(const std::string &username, const std::string &imageName, int viewNum) {
     ViewImageRequest request = ViewImageRequest();
     request.setUserName(this->username);
     request.setToken(this->token);
@@ -903,6 +992,58 @@ ViewImageRequest Peer::viewImage(const std::string& username, const std::string 
 
 void Peer::addProfileIndex(const std::string &username, int index) {
     this->profileIndices[username] = index;
+}
+
+AddViewerRequest Peer::acceptRequest(const std::string &imageName, const std::string &viewerName, int viewNum) {
+    AddViewerRequest request = AddViewerRequest();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    std::ifstream in;
+    in.open(IMAGE_DIR + imageName);
+    if (in.is_open()) {
+        ImageBody imageBody = ImageBody(this->username, viewerName, viewNum);
+        std::string image((std::istreambuf_iterator<char>(in)),
+                          std::istreambuf_iterator<char>());
+        myCache.insertImage(image, imageName, imageBody);
+    }
+    in.close();
+    request.setImageName(imageName);
+    request.setViewerName(viewerName);
+    request.setViewNum(viewNum);
+    return request;
+}
+
+DenyViewerRequest Peer::denyRequest(const std::string &imageName, const std::string &viewerName, int viewNum) {
+    DenyViewerRequest request = DenyViewerRequest();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    request.setImageName(imageName);
+    request.setViewerName(viewerName);
+    request.setViewNum(viewNum);
+    return request;
+}
+
+GetPendingRequests Peer::getPendingRequests() {
+    GetPendingRequests request = GetPendingRequests();
+    request.setUserName(this->username);
+    request.setToken(this->token);
+    return request;
+}
+
+const std::map<std::string, int> &Peer::getProfileIndices() const {
+    return profileIndices;
+}
+
+void Peer::setProfileIndices(const std::map<std::string, int> &profileIndices) {
+    Peer::profileIndices = profileIndices;
+}
+
+const Cache &Peer::getMyCache() const {
+    return myCache;
+}
+
+void Peer::setMyCache(const Cache &myCache) {
+    Peer::myCache = myCache;
 }
 
 

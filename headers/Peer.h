@@ -9,8 +9,6 @@
 #include <memory>
 #include <boost/thread.hpp>
 
-#define TEMP_DIR "temp/"
-
 using namespace MessageStructures;
 using namespace MessageStructures::Control;
 using namespace MessageStructures::User;
@@ -41,7 +39,7 @@ public:
 
     void init();
 
-    std::string createThumbnail(const std::string &imagePath);
+    std::string createThumbnail(const std::string &imagePath,  const std::string& imageName);
 
     void static cache( boost::shared_ptr<Peer> peer);
 
@@ -95,6 +93,12 @@ public:
 
     GetRequests getRequests();
 
+    AddViewerRequest acceptRequest(const std::string& imageName, const std::string& viewerName, int viewNum);
+
+    DenyViewerRequest denyRequest(const std::string& imageName, const std::string& viewerName, int viewNum);
+
+    GetPendingRequests getPendingRequests();
+
     bool isDoSOnline() const;
 
     void setDoSOnline(bool doSOnline);
@@ -144,6 +148,14 @@ public:
     void setPeerPort(int peerPort);
 
     void addProfileIndex(const std::string& username, int index);
+
+    const std::map<std::string, int> &getProfileIndices() const;
+
+    void setProfileIndices(const std::map<std::string, int> &profileIndices);
+
+    const Cache &getMyCache() const;
+
+    void setMyCache(const Cache &myCache);
 
 };
 

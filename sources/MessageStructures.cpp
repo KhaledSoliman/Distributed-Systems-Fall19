@@ -174,14 +174,6 @@ void FeedRequest::setLastIndex(int lastIndex) {
     FeedRequest::lastIndex = lastIndex;
 }
 
-const std::string &AddViewerRequest::getUserName1() const {
-    return userName;
-}
-
-void AddViewerRequest::setUserName1(const std::string &userName) {
-    this->userName = userName;
-}
-
 const std::string &AddViewerRequest::getImageName() const {
     return imageName;
 }
@@ -196,6 +188,14 @@ void AddViewerRequest::setViewerName(const std::string &viewerName) {
 
 const std::string &AddViewerRequest::getViewerName() const {
     return viewerName;
+}
+
+int AddViewerRequest::getViewNum() const {
+    return viewNum;
+}
+
+void AddViewerRequest::setViewNum(int viewNum) {
+    AddViewerRequest::viewNum = viewNum;
 }
 
 const std::string &RemoveViewerRequest::getImageName() const {

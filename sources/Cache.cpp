@@ -7,7 +7,7 @@
 #include <boost/foreach.hpp>
 #include <boost/date_time/posix_time/time_serialize.hpp>
 
-#define CACHE_DIR "/Users/khloudghattas/CLionProjects/Distributed-Systems-Fall19/Cache"
+#define CACHE_DIR "/Users/snappy/CLionProjects/Distributed-Systems-Fall19/Cache/"
 #define TIMEOUT 72
 #define PASSWORD "UNO,DOS,TRES"
 
@@ -39,12 +39,12 @@ void Cache::updateImage(const std::string &imageName, const ImageBody &imageBody
     Seng::stringToImage(imagePath, textPath, serialized, PASSWORD);
 }
 
-void Cache::removeImage(const std::string &imageName) {
+void Cache::removeImage(const std::string &imageName) const {
     std::string imagePath = CACHE_DIR + imageName;
     remove(imagePath.c_str());
 }
 
-void Cache::updateCache() {
+void Cache::updateCache() const {
     BFS::path targetDir(CACHE_DIR);
     BFS::directory_iterator it(targetDir), eod;
     BOOST_FOREACH(BFS::path const &p, std::make_pair(it, eod)) {

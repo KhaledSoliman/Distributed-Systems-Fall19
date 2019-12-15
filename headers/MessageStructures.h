@@ -495,24 +495,21 @@ namespace MessageStructures {
         // Add viewers
         struct AddViewerRequest : public Authentication::AuthRequest {
         private:
-            std::string userName;
             std::string imageName;
             std::string viewerName;
+            int viewNum;
 
             friend class boost::serialization::access;
 
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
-                ar & userName;
                 ar & imageName;
                 ar & viewerName;
+                ar & viewNum;
             }
 
         public:
-            const std::string &getUserName1() const;
-
-            void setUserName1(const std::string &userName);
 
             const std::string &getImageName() const;
 
@@ -521,9 +518,67 @@ namespace MessageStructures {
             const std::string &getViewerName() const;
 
             void setViewerName(const std::string &viewerName);
+
+            int getViewNum() const;
+
+            void setViewNum(int viewNum);
         };
 
         struct AddViewerReply : Control::Error {
+        private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+            }
+
+        public:
+        };
+
+        struct DenyViewerRequest : public Authentication::AuthRequest {
+        private:
+            std::string imageName;
+            std::string viewerName;
+            int viewNum;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & imageName;
+                ar & viewerName;
+                ar & viewNum;
+            }
+
+        public:
+            const std::string &getImageName() const {
+                return imageName;
+            }
+
+            void setImageName(const std::string &imageName) {
+                DenyViewerRequest::imageName = imageName;
+            }
+
+            const std::string &getViewerName() const {
+                return viewerName;
+            }
+
+            void setViewerName(const std::string &viewerName) {
+                DenyViewerRequest::viewerName = viewerName;
+            }
+
+            int getViewNum() const {
+                return viewNum;
+            }
+
+            void setViewNum(int viewNum) {
+                DenyViewerRequest::viewNum = viewNum;
+            }
+        };
+
+        struct DenyViewerReply : Control::Error {
         private:
             friend class boost::serialization::access;
 
@@ -773,6 +828,39 @@ namespace MessageStructures {
             }
         };
 
+        struct GetPendingRequests : public Authentication::AuthRequest {
+        private:
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+            }
+        public:
+        };
+
+        struct GetPendingRequestsReply : public Control::Error {
+        private:
+            std::vector<std::pair<ViewImageRequest, bool>> requests;
+
+            friend class boost::serialization::access;
+
+            template<class Archive>
+            void serialize(Archive &ar, const unsigned int version) {
+                ar & boost::serialization::base_object<Control::Error>(*this);
+                ar & requests;
+            }
+
+        public:
+            const std::vector<std::pair<ViewImageRequest, bool>> &getRequests() const {
+                return requests;
+            }
+
+            void setRequests(const std::vector<std::pair<ViewImageRequest, bool>>  &requests) {
+                GetPendingRequestsReply::requests = requests;
+            }
+        };
+
         // Get all messages
         struct SearchRequest : public Authentication::AuthRequest {
         private:
@@ -891,6 +979,10 @@ OBJECT_SERIALIZATION(GetRequests)
 //Directory Service Hello
 OBJECT_SERIALIZATION(GetRequestsReply)
 //Directory Service Hello
+OBJECT_SERIALIZATION(GetPendingRequests)
+//Directory Service Hello
+OBJECT_SERIALIZATION(GetPendingRequestsReply)
+//Directory Service Hello
 OBJECT_SERIALIZATION(ViewImageRequest)
 //Directory Service Hello
 OBJECT_SERIALIZATION(ViewImageReply)
@@ -920,6 +1012,10 @@ OBJECT_SERIALIZATION(DeleteImageReply)
 OBJECT_SERIALIZATION(AddViewerRequest)
 
 OBJECT_SERIALIZATION(AddViewerReply)
+//Add Viewer
+OBJECT_SERIALIZATION(DenyViewerRequest)
+
+OBJECT_SERIALIZATION(DenyViewerReply)
 //Remove Viewer
 OBJECT_SERIALIZATION(RemoveViewerRequest)
 

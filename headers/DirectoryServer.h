@@ -37,6 +37,7 @@ private:
         int portNum = DEFAULT_LISTEN_PORT;
         std::vector<std::string> images;
         std::vector<MessageStructures::User::ViewImageRequest> requests;
+        std::vector<std::pair<MessageStructures::User::ViewImageRequest, bool>> pendingRequests;
         time_t lastSeen;
 
         const std::string &getUsername() const;
@@ -71,15 +72,25 @@ private:
 
         void setLastSeen(time_t lastSeen);
 
-        bool imageExists(const std::string& imageName);
+        bool imageExists(const std::string &imageName);
 
-        void addImage(const std::string& imageName);
+        void addImage(const std::string &imageName);
 
-        void delImage(const std::string& imageName);
+        void delImage(const std::string &imageName);
 
         void addRequest(MessageStructures::User::ViewImageRequest request);
 
+        void removeRequest(int index);
+
+        void addPendingRequest(MessageStructures::User::ViewImageRequest request, bool accepted);
+
+        void removePendingRequest(int index);
+
         const std::vector<MessageStructures::User::ViewImageRequest> &getImageRequests() const;
+
+        const std::vector<std::pair<MessageStructures::User::ViewImageRequest, bool>> &getUserPendingRequests() const;
+
+        const std::vector<MessageStructures::User::ViewImageRequest> &getUserRequests() const;
 
         void setRequests(const std::vector<MessageStructures::User::ViewImageRequest> &requests);
     };
@@ -114,37 +125,47 @@ public:
 
     Ack handleAuthHello(AuthenticatedHello req);
 
-    bool userExists(const std::string& username);
+    bool userExists(const std::string &username);
 
     static std::string generateAuthToken();
 
-    bool authorize(const std::string& username, const std::string &token);
+    bool authorize(const std::string &username, const std::string &token);
 
     bool authenticate(const std::string &username, const std::string &hashedPassword);
 
-    static void handleRequest(Message* message, boost::shared_ptr<DirectoryServer> directoryServer);
+    static void handleRequest(Message *message, boost::shared_ptr<DirectoryServer> directoryServer);
 
-    SearchReply searchUser(const SearchRequest& req);
+    SearchReply searchUser(const SearchRequest &req);
 
-    LoginReply loginUser(const LoginRequest& req);
+    LoginReply loginUser(const LoginRequest &req);
 
-    LogoutReply logoutUser(const LogoutRequest& req);
+    LogoutReply logoutUser(const LogoutRequest &req);
 
-    ShowOnlineReply showOnline(const ShowOnlineRequest& req);
+    ShowOnlineReply showOnline(const ShowOnlineRequest &req);
 
-    FeedReply feed(const FeedRequest& req);
+    FeedReply feed(const FeedRequest &req);
 
-    FeedProfileReply feedProfile(const FeedProfileRequest& req);
+    FeedProfileReply feedProfile(const FeedProfileRequest &req);
 
-    RegisterReply registerUser(const RegisterRequest& req);
+    RegisterReply registerUser(const RegisterRequest &req);
 
-    AddImageReply addImage(const AddImageRequest& req);
+    AddImageReply addImage(const AddImageRequest &req);
 
-    DeleteImageReply delImage(const DeleteImageRequest& req);
+    DeleteImageReply delImage(const DeleteImageRequest &req);
 
-    ViewImageReply viewImage(const ViewImageRequest& req);
+    ViewImageReply viewImage(const ViewImageRequest &req);
 
-    GetRequestsReply getRequests(const GetRequests& req);
+    GetRequestsReply getRequests(const GetRequests &req);
+
+    GetPendingRequestsReply getPendingRequests(const GetPendingRequests &req);
+
+    AddViewerReply acceptRequest(const AddViewerRequest &req);
+
+    DenyViewerReply denyRequest(const DenyViewerRequest &req);
+
+    const boost::shared_ptr<DirectoryServer> &getDirectoryServer() const;
+
+    void setDirectoryServer(const boost::shared_ptr<DirectoryServer> &directoryServer);
 
     ~DirectoryServer();
 };
