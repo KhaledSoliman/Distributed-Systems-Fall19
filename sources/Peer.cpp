@@ -564,6 +564,11 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                     } else {
                         auto getRequestsReply = load<GetRequestsReply>(reply->getMessage());
                         if (!getRequestsReply.isFlag()) {
+                            for(const auto& request: getRequestsReply.getRequests()) {
+                                std::cout << "Request From " << request.getUserName() << ":" << std::endl;
+                                std::cout << "Image: " << request.getImageName() << std::endl;
+                                std::cout << "Views: " << request.getViewNum() << std::endl;
+                            }
                             std::cout << "GetRequest Reply: " << !getRequestsReply.isFlag() << std::endl;
                         } else {
                             std::cout << "GetRequest Reply: " << getRequestsReply.getMsg() << std::endl;

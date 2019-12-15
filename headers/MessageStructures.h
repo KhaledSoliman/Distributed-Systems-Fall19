@@ -424,6 +424,7 @@ namespace MessageStructures {
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & boost::serialization::base_object<Authentication::AuthRequest>(*this);
+                ar & targetUsername;
                 ar & viewNum;
                 ar & imageName;
             }
