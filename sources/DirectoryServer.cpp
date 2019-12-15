@@ -418,16 +418,18 @@ void DirectoryServer::loadDatabase() {
                 for (const User &user : this->users | boost::adaptors::map_values) {
                     if (user.getUsername() != username) {
                         for (const std::string &image : user.getImages()) {
+                            std::cout << index << std::endl;
                             if (index < req.getLastIndex()) {
                                 index++;
                                 continue;
                             }
                             std::ifstream in;
                             std::string path = THUMBNAILS_DIR + user.getUsername() + "-" + image;
+                            std::cout << path << std::endl;
                             in.open(path);
                             std::string thumbnail((std::istreambuf_iterator<char>(in)),
                                                   std::istreambuf_iterator<char>());
-                            thumbnails[user.getUsername()] = std::pair(image, thumbnail);
+                            thumbnails[image] = std::pair(user.getUsername(), thumbnail);
                             in.close();
                             index++;
                         }

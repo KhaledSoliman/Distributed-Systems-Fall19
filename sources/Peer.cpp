@@ -381,7 +381,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                         if (!feedReply.isFlag()) {
                             std::ofstream out;
                             for (const auto& image: feedReply.getImages()) {
-                                out.open(FEED_DIR + image.first + '-' + image.second.first);
+                                out.open(FEED_DIR + image.second.first + '-' + image.first);
                                 out << image.second.second;
                                 out.close();
                             }
@@ -411,6 +411,7 @@ void Peer::handleChoice(boost::shared_ptr<Peer> peer) {
                             std::ofstream out;
                             for (const auto& image: feedReply.getImages()) {
                                 out.open(PROFILE_DIR + feedReply.getTargetUsername() + '-' + image.first);
+
                                 out << image.second;
                                 out.close();
                             }
