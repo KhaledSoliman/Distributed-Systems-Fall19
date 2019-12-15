@@ -114,6 +114,7 @@ void DirectoryServer::loadDatabase() {
         }
         in.close();
     }
+}
 
     void DirectoryServer::saveDatabase() {
         std::ofstream out;
