@@ -110,7 +110,7 @@ void Peer::DoSChecker(boost::shared_ptr<Peer> peer) {
             } else {
                 peer->setDoSOnline(true);
             }
-            boost::this_thread::sleep(boost::posix_time::milliseconds(22500));
+            boost::this_thread::sleep(boost::posix_time::minutes(30));
         }
     }
 }
@@ -158,6 +158,8 @@ void Peer::listen(boost::shared_ptr<Peer> peer) {
     while (true) {
         Message *message = peer->Server::receive();
         boost::thread handleRequest(&Peer::handleRequest, message, peer);
+        if (message->getOperation() == Message::OperationType::DOWNLOAD_IMAGE)
+            boost::this_thread::sleep(boost::posix_time::seconds(15));
     }
 #pragma clang diagnostic pop
 }
