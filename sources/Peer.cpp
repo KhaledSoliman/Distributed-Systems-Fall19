@@ -199,6 +199,7 @@ void Peer::handleRequest(Message *message, boost::shared_ptr<Peer> peer) {
                 default:
                     break;
             }
+            peer->Server::send(reply);
             break;
         case Message::MessageType::Reply:
             switch (message->getOperation()) {
